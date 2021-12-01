@@ -25,10 +25,10 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore --configuration Release
+      run: dotnet publish --no-restore --configuration Release
       
     - name: Upload artifacts
-      run:  rsync -ratlz --rsh="/usr/bin/sshpass -p $password ssh -o StrictHostKeyChecking=no -l deploy -p $ssh_port" ./bin/Release/net6.0/ deploy@$hostname:/home/deploy/app/
+      run:  rsync -ratlz --rsh="/usr/bin/sshpass -p $password ssh -o StrictHostKeyChecking=no -l deploy -p $ssh_port" ./bin/Release/net6.0/publish/ deploy@$hostname:/home/deploy/app/
     - name: Launch an artifact
       run:  sudo sshpass -p $password ssh -o StrictHostKeyChecking=no deploy@$hostname -p $ssh_port "pkill -9 dotnet;dotnet ~/app/Druzhbank.dll &"
 
