@@ -1,0 +1,34 @@
+name: .NET
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+    
+  build:
+    runs-on: ubuntu-latest
+    env:
+      hostname: ${{ secrets.HOSTNAME }}
+      password: ${{ secrets.PASSWORD }}
+      ssh_port: ${{ secrets.SSH_PORT }}
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore
+      
+    - name: Upload artifacts
+      run:  rsync -ratlz --rsh="/usr/bin/sshpass -p $password ssh -o StrictHostKeyChecking=no -l deploy -p $ssh_port" ./bin/Debug/net6.0/ deploy@$hostname:/home/deploy/app/
+    - name: Launch an artifact
+      run:  sudo sshpass -p $password ssh -o StrictHostKeyChecking=no deploy@$hostname -p $ssh_port "dotnet ~/app/Druzhbank.dll"
+
