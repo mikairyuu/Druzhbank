@@ -1,19 +1,20 @@
-﻿{
+{
   "iisSettings": {
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "sslPort": 44303
+      "applicationUrl": "http://localhost:59492/",
+      "sslPort": 44305
     }
   },
   "profiles": {
     "Druzhbank": {
       "commandName": "Project",
-      "dotnetRunMessages": true,
       "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      }
+      },
+      "dotnetRunMessages": true
     },
     "IIS Express": {
       "commandName": "IISExpress",

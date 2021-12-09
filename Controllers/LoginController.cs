@@ -8,7 +8,7 @@ namespace Druzhbank.Controllers
     public class LoginController : ControllerBase
     {
         private readonly ILogger<LoginController> _logger;
-        
+
         public LoginController(ILogger<LoginController> logger)
         {
             _logger = logger;
@@ -19,7 +19,5 @@ namespace Druzhbank.Controllers
         {
             return "Здесь будет осуществляться логин в банк";
         }
-
-
     }
 }
