@@ -1,3 +1,4 @@
+using Druzhbank.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
@@ -9,6 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddSingleton<UserService>();
+builder.Services.AddSingleton<StuffService>();
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 builder.Services.AddSwaggerGen();
 var app = builder.Build();

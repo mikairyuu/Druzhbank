@@ -4,52 +4,60 @@ using System.Threading.Tasks;
 using Druzhbank.Entity;
 using Druzhbank.Enums;
 using Druzhbank.Models;
+using Druzhbank.Responses;
 using Microsoft.AspNetCore.Mvc;
-using Druzhbank.Servises;
+using Druzhbank.Services;
 
 [ApiController]
 public class UserController : ControllerBase
 {
-    [HttpPost("/login")]
-    public async Task<UserModel> Login([Bind("User")] UserModel user)
+    private UserService _userService;
+
+    public UserController(UserService userService)
     {
-        var answer = await UserServises.Login(user.username, user.password);
+        _userService = userService;
+    }
+    
+    [HttpPost("/login")]
+    public async Task<UserModel> Login([Bind("User")] LoginResponse response)
+    {
+        var answer = await _userService.Login(response.username, response.password);
         return answer;
     }
     
     
     [HttpPost("/getuser")]
-    public async Task<UserModel> GetUser([Bind("User")] UserModel user)
+    public async Task<UserModel> GetUser([Bind("User")] TokenResponse response)
     {
-        var answer = await UserServises.GetUser(user.token);
+        var answer = await _userService.GetUser(response.token);
         return answer;
     }
 
     
     [HttpDelete("/logout")]
-    public async Task<Result> Logout([Bind("User")] UserModel user)
+    public async Task<Result> Logout([Bind("User")] TokenResponse response)
     {
-        return await UserServises.Logout(user.token);
+        return await _userService.Logout(response.token);
     }
     
     
     [HttpPut("/editepassword")] // todo  решить надо ли менять токен!!!!!
     public async Task<Result> EditePassword([Bind("User")] UserModel user)
     {
-        return await UserServises.ChangePassword(user.token,user.password);
+        return await _userService.ChangePassword(user.token,user.password);
     }
     
     
     [HttpPut("/editeusername")]
     public async Task<Result> EditeUsername([Bind("User")] UserModel user)
     {
-        return await UserServises.ChangePassword(user.token,user.username);
+        return await _userService.ChangePassword(user.token,user.username);
     }
     
     [HttpPost("/lastlogins")]
-    public async Task<List<HistoryLoginEntity>> GetUserLoginHistory([Bind("User")] UserModel user)
+    public async Task<List<HistoryLoginEntity>> GetUserLoginHistory([Bind("User")] TokenResponse response)
     {
-        var answer = await UserServises.GetLoginHistory(user.token);
+        var answer = await _userService.GetLoginHistory(response.token);
         return answer;
     }
 }

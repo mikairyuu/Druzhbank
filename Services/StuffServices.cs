@@ -9,13 +9,13 @@ using Druzhbank.Models;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 
-namespace Druzhbank.Servises
+namespace Druzhbank.Services
 {
-    public class StuffServises
+    public class StuffService
     {
         private static string _connectionString;
 
-        public StuffServises(IConfiguration configuration)
+        public StuffService(IConfiguration configuration)
         {
             _connectionString = configuration.GetConnectionString("MainDB");
             if (_connectionString == null) throw new Exception("Connection string not specified");
