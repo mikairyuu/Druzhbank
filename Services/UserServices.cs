@@ -25,6 +25,39 @@ namespace Druzhbank.Services
         }
 
 
+        public async Task<String> SignIn(String? name, String? username, String? password)
+        {
+            NpgsqlConnection connection = null;
+            try
+            {
+                await using (connection = new NpgsqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    var hash_and_salt = GenerateHash(password);
+                    var token = Guid.NewGuid();
+                    var ans = await connection.ExecuteAsync(@"insert into ""User"" (name,username,hash,salt,token) " +
+                                                            "values (@name,@username,@hash,@salt,@token)",
+                        new
+                        {
+                            @name = name, @username = username, @hash = hash_and_salt.Key, @salt = hash_and_salt.Value,
+                            @token = token.ToString()
+                        });
+                    await connection.CloseAsync();
+                    return token.ToString();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return e.Message;
+            }
+            finally
+            {
+                connection?.CloseAsync();
+            }
+        }
+
+
         public async Task<UserModel> Login(String? username, String? password)
         {
             NpgsqlConnection connection = null;
@@ -33,10 +66,15 @@ namespace Druzhbank.Services
                 await using (connection = new NpgsqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    var ans = await connection.QueryAsync<UserEntity>(@"select * from ""User"" where username = @username",
+                    var ans = await connection.QueryAsync<UserEntity>(
+                        @"select * from ""User"" where username = @username",
                         new {@username = username});
                     var user = ans.FirstOrDefault();
-                    if (GenerateHashFromSalt(password, user.salt) != user.hash)
+                    if (user != null)
+                        await connection.ExecuteAsync(
+                            @"insert into ""VisitHistory"" (date_visit,user_id) values (@date,@id)",
+                            new {@date = DateTime.Today, @id = user.id});
+                    if (user == null || GenerateHashFromSalt(password, user.salt) != user.hash)
                         user = null;
                     await connection.CloseAsync();
                     return UserConventer(user);
@@ -87,6 +125,7 @@ namespace Druzhbank.Services
                 await using (connection = new NpgsqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
+                    var new_token = Guid.NewGuid();
                     var ans = await connection.ExecuteScalarAsync<UserModel>(
                         @"select * from ""User"" where token = @token",
                         new {@token = token});
@@ -114,16 +153,14 @@ namespace Druzhbank.Services
                 await using (connection = new NpgsqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    var answer = await connection.QueryAsync<UserModel>(
-                        // todo 
-                        @"select * from ""User"" where token = @token",
-                        new {@token = token});
-                    var user = answer.FirstOrDefault();
-                    password = GenerateHashFromSalt(password, user.salt);
-                    if (password != user.password)
-                        await connection.ExecuteScalarAsync(
-                            "Update [User] set hash = @password where token = @token",
-                            new {@password = password, @token = token});
+                    var hash = GenerateHash(password);
+                    var new_token = Guid.NewGuid();
+                    await connection.ExecuteScalarAsync(
+                        @"Update ""User"" set hash = @password, salt = @salt, token = @new_token where token = @token",
+                        new
+                        {
+                            @password = hash.Key, @salt = hash.Value, @new_token = new_token.ToString(), @token = token
+                        });
                     await connection.CloseAsync();
                     return Result.Success;
                 }
@@ -148,12 +185,11 @@ namespace Druzhbank.Services
                 await using (connection = new NpgsqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    var ans = await connection.ExecuteScalarAsync<UserModel>(
-                        // todo 
-                        @"select * from ""User"" where token = @token",
-                        new {@token = token});
+                    await connection.ExecuteAsync(
+                        @"Update ""User"" set username = @username where token = @token",
+                        new {@username = username, @token = token});
                     await connection.CloseAsync();
-                    return ans != null ? Result.Success : Result.Failure;
+                    return Result.Success;
                 }
             }
             catch (Exception e)
@@ -166,8 +202,8 @@ namespace Druzhbank.Services
                 connection?.CloseAsync();
             }
         }
-        
-        
+
+
         public async Task<List<HistoryLoginEntity>> GetLoginHistory(String? token)
         {
             NpgsqlConnection connection = null;
@@ -211,7 +247,6 @@ namespace Druzhbank.Services
 
         private static string GenerateHashFromSalt(string s, string strSalt) => Convert.ToBase64String(
             KeyDerivation.Pbkdf2(s, Convert.FromBase64String(strSalt), KeyDerivationPrf.HMACSHA1, 1000, 256 / 8));
-
 
 
         private static UserModel UserConventer(UserEntity? user)

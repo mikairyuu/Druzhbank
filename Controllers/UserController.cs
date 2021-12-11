@@ -18,6 +18,13 @@ public class UserController : ControllerBase
         _userService = userService;
     }
     
+    [HttpPost("/signin")]
+    public async Task<String> SignIn([Bind("User")] UserModel response)
+    {
+        var answer = await _userService.SignIn(response.name,response.username, response.password);
+        return answer;
+    }
+    
     [HttpPost("/login")]
     public async Task<UserModel> Login([Bind("User")] LoginResponse response)
     {
@@ -34,7 +41,7 @@ public class UserController : ControllerBase
     }
 
     
-    [HttpDelete("/logout")]
+    [HttpDelete("/logout")]// todo придумать нафиг это воообще надо (в этом запросе смысла как-то немного чот тип 0)
     public async Task<Result> Logout([Bind("User")] TokenResponse response)
     {
         return await _userService.Logout(response.token);
@@ -42,16 +49,16 @@ public class UserController : ControllerBase
     
     
     [HttpPut("/editepassword")] // todo  решить надо ли менять токен!!!!!
-    public async Task<Result> EditePassword([Bind("User")] UserModel user)
+    public async Task<Result> EditePassword([Bind("User")] EditPasswordResponse response)
     {
-        return await _userService.ChangePassword(user.token,user.password);
+        return await _userService.ChangePassword(response.token,response.password);
     }
     
     
     [HttpPut("/editeusername")]
-    public async Task<Result> EditeUsername([Bind("User")] UserModel user)
-    {
-        return await _userService.ChangePassword(user.token,user.username);
+    public async Task<Result> EditeUsername([Bind("User")] EditUsernameResponse response)
+    {// todo можно выводить сообщение ошибки 
+        return await _userService.ChangeUsername(response.token,response.username);
     }
     
     [HttpPost("/lastlogins")]
