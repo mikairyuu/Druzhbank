@@ -115,7 +115,7 @@ namespace Druzhbank.Services
                 connection?.CloseAsync();
             }
         }
-        
+
         public async Task<List<CheckModel>> GetCheck(String? token)
         {
             NpgsqlConnection connection = null;
@@ -184,12 +184,15 @@ namespace Druzhbank.Services
                     IEnumerable<HistotyItemEntity> ans = null;
                     switch (instrument)
                     {
-                        // todo
                         case Instrument.Card:
-                            ans = await connection.QueryAsync<HistotyItemEntity>("select * from [ATM]");
+                            ans = await connection.QueryAsync<HistotyItemEntity>
+                            (@"select * from ""OperationHistory"" where user_id = (select id from ""User"" where token = @token) and instrument_id = (select id from ""Cards"" where number = @number) and instrument_type = @type",
+                                new {@token = token, @number = instrument_number, @type = instrument});
                             break;
                         case Instrument.Check:
-                            ans = await connection.QueryAsync<HistotyItemEntity>("select * from [ATM]");
+                            ans = await connection.QueryAsync<HistotyItemEntity>
+                            (@"select * from ""OperationHistory"" where user_id = (select id from ""User"" where token = @token) and instrument_id = (select id from ""Check"" where number = @number) and instrument_type = @type",
+                                new {@token = token, @number = instrument_number, @type = instrument});
                             break;
                     }
 
@@ -217,8 +220,9 @@ namespace Druzhbank.Services
                 await using (connection = new NpgsqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    var ans = await connection.QueryAsync<InstrumentEntity>("select * from [ATM]");
-
+                    await connection.ExecuteAsync
+                    (@"update ""Cards"" set is_blocked = true where number = @number and user_id = (select id from ""User"" where token = @token)",
+                        new {@token = token, @number = instrument_number});
                     await connection.CloseAsync();
                     return Result.Success;
                 }

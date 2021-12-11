@@ -66,23 +66,23 @@ namespace Druzhbank.Controllers
         }
 
         [HttpPost("/history/card")]
-        public async Task<List<HistotyItemEntity>> GetHistoryCard([Bind("User")] UserInstrumentModel user)
+        public async Task<List<HistotyItemEntity>> GetHistoryCard([Bind("User")] TokenNumberResponse response)
         {
-            var answer = await _stuffService.GetInstrumentHistory(user.token, user.card_number, Instrument.Credit);
+            var answer = await _stuffService.GetInstrumentHistory(response.token, response.number, Instrument.Card);
             return answer;
         }
 
         [HttpPost("/history/check")]
-        public async Task<List<HistotyItemEntity>> GetHistoryCheck([Bind("User")] UserInstrumentModel user)
+        public async Task<List<HistotyItemEntity>> GetHistoryCheck([Bind("User")] TokenNumberResponse response)
         {
-            var answer = await _stuffService.GetInstrumentHistory(user.token, user.check_number, Instrument.Credit);
+            var answer = await _stuffService.GetInstrumentHistory(response.token, response.number, Instrument.Check);
             return answer;
         }
 
         [HttpPost("/block")]
-        public async Task<Result> BlockCard([Bind("User")] UserInstrumentModel user)
+        public async Task<Result> BlockCard([Bind("User")] TokenNumberResponse response)
         {
-            var answer = await _stuffService.BlockCard(user.token, user.card_number);
+            var answer = await _stuffService.BlockCard(response.token, response.number);
             return answer;
         }
         
