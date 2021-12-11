@@ -12,5 +12,6 @@ namespace Druzhbank.Entity
         public Boolean? is_blocked { get; set; }
         public String? hash_cvv { get; set; }
         public DateTime? payment_date { get; set; }
+        public DateTime? expairy_date { get; set; }
     }
 }
