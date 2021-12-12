@@ -252,15 +252,48 @@ namespace Druzhbank.Services
                     {
                         // todo
                         case Instrument.Card:
-                            await connection.QueryAsync<HistotyItemEntity>("select * from [ATM]");
+                            var is_card_exist = await connection.QueryAsync<InstrumentEntity>(
+                                @"select id from ""Cards"" where number = @dest",
+                                new {@dest = dest});
+                            if (is_card_exist.FirstOrDefault() != null)
+                            {
+                                var check_cards = await connection.ExecuteAsync
+                                (@"update ""Cards"" set count = count-@sum  where number = @source and user_id = (select id from ""User"" where token = @token)",
+                                    new {@sum = sum, @source = source, token = @token});
+                                if (check_cards > 0)
+                                {
+                                    await connection.ExecuteAsync(
+                                        @"update ""Cards"" set count = count+@sum where number = @dest",
+                                        new {@sum = sum, @dest = dest});
+                                    await connection.CloseAsync();
+                                    return Result.Success;
+                                }
+                            }
+
                             break;
                         case Instrument.Check:
-                            await connection.QueryAsync<HistotyItemEntity>("select * from [ATM]");
+                            var is_check_exist = await connection.QueryAsync<InstrumentEntity>(
+                                @"select id from ""Cards"" where number = @dest",
+                                new {@dest = dest});
+                            if (is_check_exist.FirstOrDefault() != null)
+                            {
+                                var check_check = await connection.ExecuteAsync
+                                (@"update ""Cards"" set count = count-@sum  where number = @source and user_id = (select id from ""User"" where token = @token)",
+                                    new {@sum = sum, @source = source, token = @token});
+                                if (check_check > 0)
+                                {
+                                    await connection.ExecuteAsync(
+                                        @"update ""Check"" set count = count+@sum where number = @dest",
+                                        new {@sum = sum, @dest = dest});
+                                    await connection.CloseAsync();
+                                    return Result.Success;
+                                }
+                            }
+
                             break;
                     }
-
                     await connection.CloseAsync();
-                    return Result.Success;
+                    return Result.Failure;
                 }
             }
             catch (Exception e)
@@ -283,7 +316,7 @@ namespace Druzhbank.Services
                 await using (connection = new NpgsqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    var ans = await connection.QueryAsync<CategoryEntity>("select * from [ATM]");
+                    var ans = await connection.QueryAsync<CategoryEntity>(@"select * from ""Category""");
                     await connection.CloseAsync();
                     return ans.ToList();
                 }
