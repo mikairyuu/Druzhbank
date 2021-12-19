@@ -12,8 +12,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
+      keylink:  ${{ secrets.KEYLINK }}
       hostname: ${{ secrets.HOSTNAME }}
-      password: ${{ secrets.PASSWORD }}
       ssh_port: ${{ secrets.SSH_PORT }}
 
     steps:
@@ -27,8 +27,10 @@ jobs:
     - name: Build
       run: dotnet publish --no-restore --configuration Release
       
+    - name: Download SSH key
+      run: wget -O k.key "$keylink";chmod 400 k.key
     - name: Upload artifacts
-      run:  rsync -ratlz --rsh="/usr/bin/sshpass -p $password ssh -o StrictHostKeyChecking=no -l deploy -p $ssh_port" ./bin/Release/net6.0/publish/ deploy@$hostname:/home/deploy/app/
+      run:  rsync -ratlz --rsh="ssh -i k.key -o StrictHostKeyChecking=no -l deploy -p $ssh_port" ./bin/Release/net6.0/publish/ deploy@$hostname:/home/deploy/app/
     - name: Launch an artifact
-      run:  sudo sshpass -p $password ssh -o StrictHostKeyChecking=no deploy@$hostname -p $ssh_port "pkill -9 dotnet;cd ~/app;dotnet ./Druzhbank.dll &"
+      run:  sudo ssh -i k.key -o StrictHostKeyChecking=no deploy@$hostname -p $ssh_port "pkill -9 dotnet;cd ~/app;dotnet ./Druzhbank.dll &>/dev/null &"
 
