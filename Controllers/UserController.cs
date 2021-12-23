@@ -48,10 +48,10 @@ public class UserController : ControllerBase
     }
     
     
-    [HttpPut("/editepassword")] // todo  решить надо ли менять токен!!!!!
-    public async Task<Result> EditePassword([Bind("User")] EditPasswordResponse response)
+    [HttpPut("/editepassword")] 
+    public async Task<String?> EditePassword([Bind("User")] EditPasswordResponse response)
     {
-        return await _userService.ChangePassword(response.token,response.password);
+        return await _userService.ChangePassword(response.token,response.old_password,response.new_password);
     }
     
     

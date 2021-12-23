@@ -58,7 +58,7 @@ namespace Druzhbank.Services
         }
 
 
-        public async Task<UserModel> Login(String? username, String? password)
+        public async Task<UserModel> Login(String? username, String? password)//todo check changes
         {
             NpgsqlConnection connection = null;
             try
@@ -70,12 +70,13 @@ namespace Druzhbank.Services
                         @"select * from ""User"" where username = @username",
                         new {@username = username});
                     var user = ans.FirstOrDefault();
+                    if (user == null || GenerateHashFromSalt(password, user.salt) != user.hash)
+                        user = null;
+                    
                     if (user != null)
                         await connection.ExecuteAsync(
                             @"insert into ""VisitHistory"" (date_visit,user_id) values (@date,@id)",
                             new {@date = DateTime.Today, @id = user.id});
-                    if (user == null || GenerateHashFromSalt(password, user.salt) != user.hash)
-                        user = null;
                     await connection.CloseAsync();
                     return UserConventer(user);
                 }
@@ -145,7 +146,7 @@ namespace Druzhbank.Services
         }
 
 
-        public async Task<Result> ChangePassword(String? token, String? password)
+        public async Task<String?> ChangePassword(String? token, String? old_password,String? new_password) // check changes
         {
             NpgsqlConnection connection = null;
             try
@@ -153,7 +154,15 @@ namespace Druzhbank.Services
                 await using (connection = new NpgsqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    var hash = GenerateHash(password);
+                    var ans = await connection.QueryAsync<UserEntity>(@"select * from ""User"" where token = @token",
+                        new {@token = token});
+                    var user = ans.FirstOrDefault();
+                    if (GenerateHashFromSalt(old_password, user.salt) != user.hash)
+                    {
+                        await connection.CloseAsync();
+                        return null;
+                    }
+                    var hash = GenerateHash(new_password);
                     var new_token = Guid.NewGuid();
                     await connection.ExecuteScalarAsync(
                         @"Update ""User"" set hash = @password, salt = @salt, token = @new_token where token = @token",
@@ -162,13 +171,13 @@ namespace Druzhbank.Services
                             @password = hash.Key, @salt = hash.Value, @new_token = new_token.ToString(), @token = token
                         });
                     await connection.CloseAsync();
-                    return Result.Success;
+                    return new_token.ToString();
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-                return Result.Failure;
+                return null;
             }
             finally
             {
