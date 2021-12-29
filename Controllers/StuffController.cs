@@ -82,7 +82,7 @@ namespace Druzhbank.Controllers
         [HttpPost("/history/all")]
         public async Task<List<HistotyItemEntity>> GetHistoryAll([Bind("User")] OperationResponce response)
         {
-            var answer = await _stuffService.GetAllInstrumentHistory(response.token, response.number, response.operationCount);
+            var answer = await _stuffService.GetAllInstrumentHistory(response.token, response.operationCount);
             return answer;
         }
 
