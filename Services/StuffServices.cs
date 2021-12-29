@@ -212,6 +212,34 @@ namespace Druzhbank.Services
         }
 
 
+        public async Task<List<HistotyItemEntity>> GetAllInstrumentHistory(String? token, String? instrument_number,
+            int? operationCount)
+        {
+            NpgsqlConnection connection = null;
+            try
+            {
+                await using (connection = new NpgsqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    IEnumerable<HistotyItemEntity> ans = null;
+                    ans = await connection.QueryAsync<HistotyItemEntity>
+                    (@"select * from (select * from ""OperationHistory"" order by date desc) as a where user_id = (select id from ""User"" where token = @token) limit @operationCount",
+                        new {@token = token, @number = instrument_number, @operationCount = operationCount});
+                    await connection.CloseAsync();
+                    return ans.ToList();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return null;
+            }
+            finally
+            {
+                connection?.CloseAsync();
+            }
+        }
+
         public async Task<Result> BlockCard(String? token, String? instrument_number)
         {
             NpgsqlConnection connection = null;
@@ -292,6 +320,7 @@ namespace Druzhbank.Services
 
                             break;
                     }
+
                     await connection.CloseAsync();
                     return Result.Failure;
                 }

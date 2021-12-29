@@ -78,6 +78,13 @@ namespace Druzhbank.Controllers
             var answer = await _stuffService.GetInstrumentHistory(response.token, response.number, Instrument.Check);
             return answer;
         }
+        
+        [HttpPost("/history/all")]
+        public async Task<List<HistotyItemEntity>> GetHistoryAll([Bind("User")] OperationResponce response)
+        {
+            var answer = await _stuffService.GetAllInstrumentHistory(response.token, response.number, response.operationCount);
+            return answer;
+        }
 
         [HttpPost("/block")]
         public async Task<Result> BlockCard([Bind("User")] TokenNumberResponse response)
