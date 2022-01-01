@@ -66,21 +66,21 @@ namespace Druzhbank.Controllers
         }
 
         [HttpPost("/history/card")]
-        public async Task<List<HistotyItemEntity>> GetHistoryCard([Bind("User")] TokenNumberResponse response)
+        public async Task<List<InstrumentHistoryItemModel>> GetHistoryCard([Bind("User")] TokenNumberResponse response)
         {
             var answer = await _stuffService.GetInstrumentHistory(response.token, response.number, Instrument.Card);
             return answer;
         }
 
         [HttpPost("/history/check")]
-        public async Task<List<HistotyItemEntity>> GetHistoryCheck([Bind("User")] TokenNumberResponse response)
+        public async Task<List<InstrumentHistoryItemModel>> GetHistoryCheck([Bind("User")] TokenNumberResponse response)
         {
             var answer = await _stuffService.GetInstrumentHistory(response.token, response.number, Instrument.Check);
             return answer;
         }
         
         [HttpPost("/history/all")]
-        public async Task<List<HistotyItemEntity>> GetHistoryAll([Bind("User")] OperationResponce response)
+        public async Task<List<InstrumentHistoryItemModel>> GetHistoryAll([Bind("User")] OperationResponce response)
         {
             var answer = await _stuffService.GetAllInstrumentHistory(response.token, response.operationCount);
             return answer;

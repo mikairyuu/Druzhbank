@@ -172,7 +172,7 @@ namespace Druzhbank.Services
         }
 
 
-        public async Task<List<HistotyItemEntity>> GetInstrumentHistory(String? token, String? instrument_number,
+        public async Task<List<InstrumentHistoryItemModel>> GetInstrumentHistory(String? token, String? instrument_number,
             Instrument instrument)
         {
             NpgsqlConnection connection = null;
@@ -195,9 +195,8 @@ namespace Druzhbank.Services
                                 new {@token = token, @number = instrument_number, @type = instrument});
                             break;
                     }
-
                     await connection.CloseAsync();
-                    return ans.ToList();
+                    return ConvertInstrumentHistory(ans.ToList());
                 }
             }
             catch (Exception e)
@@ -212,7 +211,7 @@ namespace Druzhbank.Services
         }
 
 
-        public async Task<List<HistotyItemEntity>> GetAllInstrumentHistory(String? token,int? operationCount)
+        public async Task<List<InstrumentHistoryItemModel>> GetAllInstrumentHistory(String? token,int? operationCount)
         {
             NpgsqlConnection connection = null;
             try
@@ -224,8 +223,9 @@ namespace Druzhbank.Services
                     ans = await connection.QueryAsync<HistotyItemEntity>
                     (@"select * from (select * from ""OperationHistory"" order by date desc) as a where user_id = (select id from ""User"" where token = @token) limit @operationCount",
                         new {@token = token, @operationCount = operationCount});
+                    
                     await connection.CloseAsync();
-                    return ans.ToList();
+                    return ConvertInstrumentHistory(ans.ToList());
                 }
             }
             catch (Exception e)
@@ -399,7 +399,24 @@ namespace Druzhbank.Services
                 connection?.CloseAsync();
             }
         }
+        
+        
 
+        private List<InstrumentHistoryItemModel> ConvertInstrumentHistory(List<HistotyItemEntity> items)
+        {
+            var answer = new List<InstrumentHistoryItemModel>();
+            foreach (var instrument in items)
+            {
+                var item = new InstrumentHistoryItemModel();
+                item.id = instrument.id;
+                item.type = instrument.instrument_type;
+                item.count = instrument.count;
+                item.date = instrument.date.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffffffzzz");
+                answer.Add(item);
+            }
+
+            return answer;
+        }
 
         private List<CardModel> ConvertCard(List<InstrumentEntity> instruments)
         {

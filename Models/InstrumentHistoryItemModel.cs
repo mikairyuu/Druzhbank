@@ -1,13 +1,14 @@
 ﻿using System;
+using System.Text.Json.Nodes;
 
-namespace Druzhbank.Entity
+namespace Druzhbank.Models
 {
-    public class HistotyItemEntity
+    public class InstrumentHistoryItemModel
     {
         public int? id { get; set; }
         public int? type { get; set; }
         public int? instrument_type { get; set; }
         public String? count { get; set; }
-        public DateTime? date { get; set; }
+        public String? date { get; set; }
     }
 }
