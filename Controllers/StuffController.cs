@@ -109,6 +109,13 @@ namespace Druzhbank.Controllers
             return answer;
         }
         
+        [HttpPost("/pay/category")]
+        public async Task<Result> PayCategory([Bind("User")] TranslationCategoryModel refill)
+        {
+            var answer = await _stuffService.PayCategory(refill.token, refill.sourse,refill.dest_id,refill.sum);
+            return answer;
+        }
+        
         
         [HttpPost("/category")]
         public async Task<List<CategoryEntity>> GetAllCategory()

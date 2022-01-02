@@ -9,5 +9,6 @@ namespace Druzhbank.Entity
         public int? instrument_type { get; set; }
         public String? count { get; set; }
         public DateTime? date { get; set; }
+        public String? dest { get; set; }
     }
 }
