@@ -116,6 +116,57 @@ namespace Druzhbank.Services
             }
         }
 
+        public async Task<List<ShortInstrumentEntity>> GetAllInstruments(String? token)
+        {
+            NpgsqlConnection connection = null;
+            try
+            {
+                await using (connection = new NpgsqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    IEnumerable<ShortInstrumentEntity> ans = null;
+                    ans = await connection.QueryAsync<ShortInstrumentEntity>(
+                        @"with my_credits as(
+	                   select * from ""Credit"" where user_id = (select id from ""User"" where token = @token)
+                    ),
+                    credits as (
+                        select my_credits.id,name,number,instrument_type from my_credits
+                        join ""OperationHistory"" on instrument_type =3
+                    group by my_credits.id,instrument_type,name,number),
+
+                    my_check as(
+                        select * from ""Check"" where user_id = (select id from ""User"" where token = @token)
+                        ),
+                    check_ as (
+                        select my_check.id,name,number,instrument_type from my_check
+                        join ""OperationHistory"" on instrument_type =2
+                    group by my_check.id,instrument_type,name,number),
+
+                    my_cards as(
+                        select * from ""Cards"" where user_id = (select id from ""User"" where token = @token) and is_blocked = 'false'
+                        ),
+                    cards as(
+                        select my_cards.id,name,number,instrument_type from my_cards
+                        join ""OperationHistory"" on instrument_type =1
+                    group by my_cards.id,instrument_type,name,number)
+
+                    select * from credits union select * from check_ union select * from cards",
+                        new {@token = token});
+                    await connection.CloseAsync();
+                    return ans.ToList();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return null;
+            }
+            finally
+            {
+                connection?.CloseAsync();
+            }
+        }
+        
         public async Task<List<CheckModel>> GetCheck(String? token)
         {
             NpgsqlConnection connection = null;
@@ -154,7 +205,7 @@ namespace Druzhbank.Services
                     await connection.OpenAsync();
                     IEnumerable<InstrumentEntity> ans = null;
                     ans = await connection.QueryAsync<InstrumentEntity>(
-                        @"select * from ""Cards"" where user_id = (select id from ""User"" where token = @token)",
+                        @"select * from ""Cards"" where user_id = (select id from ""User"" where token = @token) and is_blocked = 'false'",
                         new {@token = token});
                     await connection.CloseAsync();
                     return ConvertCard(ans.ToList());

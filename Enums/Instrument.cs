@@ -2,9 +2,9 @@
 {
     public enum Instrument
     {
-        Card = 1,
-        Check = 2,
-        Credit = 3
+        Card = 0,
+        Check = 1,
+        Credit = 2
             
     }
 }

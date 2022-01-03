@@ -36,7 +36,10 @@ public class UserController : ControllerBase
     [HttpPost("/getuser")]
     public async Task<UserModel> GetUser([Bind("User")] TokenResponse response)
     {
-        var answer = await _userService.GetUser(response.token);
+        var ans = await _userService.GetUser(response.token);
+        var answer = new UserModel();
+        if (ans != null)
+            answer = ans;
         return answer;
     }
 

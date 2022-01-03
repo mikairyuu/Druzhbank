@@ -64,6 +64,13 @@ namespace Druzhbank.Controllers
             var answer = await _stuffService.GetCredit(response.token);
             return answer;
         }
+        
+        [HttpPost("/getallinstruments")]
+        public async Task<List<ShortInstrumentEntity>> GetAllInstruments([Bind("User")] TokenResponse response)
+        {
+            var answer = await _stuffService.GetAllInstruments(response.token);
+            return answer;
+        }
 
         [HttpPost("/history/card")]
         public async Task<List<InstrumentHistoryItemModel>> GetHistoryCard([Bind("User")] TokenNumberResponse response)
