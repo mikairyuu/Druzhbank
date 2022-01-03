@@ -168,7 +168,7 @@ namespace Druzhbank.Controllers
         [HttpPost("/pay/category")]
         public async Task<Result> PayCategory([Bind("User")] TranslationCategoryModel refill)
         {
-            var answer = await _stuffService.PayCategory(refill.token, refill.sourse,refill.dest_id,refill.sum);
+            var answer = await _stuffService.PayCategory(refill.token, refill.sourse,refill.dest_name,refill.sum);
             return answer;
         }
         

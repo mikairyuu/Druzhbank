@@ -452,7 +452,7 @@ namespace Druzhbank.Services
         }
 
 
-        public async Task<Result> PayCategory(String? token, String? source, int? dest_id, double? sum)
+        public async Task<Result> PayCategory(String? token, String? source, String? dest_name, double? sum)
         {
             NpgsqlConnection connection = null;
             try
@@ -473,10 +473,10 @@ namespace Druzhbank.Services
                                                (select id from ""User"" where token = @token limit 1),
                                                 (select id from ""Cards"" where number = @number limit 1),
                                                @instrumentType,
-                                                (select name from ""Category"" where id = @id limit 1))",
+                                                @dest)",
                             new
                             {
-                                @id = dest_id, @token = token, 
+                                @dest = dest_name, @token = token, 
                                 @instrumentType = Instrument.Card, 
                                 @number = source,
                                 @date = DateTime.Today, 
