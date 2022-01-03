@@ -30,12 +30,12 @@ namespace Druzhbank.Controllers
             return answer;
         }
         
-        [HttpGet("/quotes")]// todo разобраться с передаваемой датой
+        /*[HttpGet("/quotes")]// todo разобраться с передаваемой датой
         public async Task<List<String>> GetQuotes([FromQuery(Name = "date")] DateTime date)
         {
             var ans = await _stuffService.GetQuotes(date);
             return ans;
-        }
+        }*/
 
         [HttpGet("/valute")]
         public async Task<String> GetCoefficients()

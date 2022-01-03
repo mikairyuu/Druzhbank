@@ -19,7 +19,7 @@ public class UserController : ControllerBase
     }
     
     [HttpPost("/signin")]
-    public async Task<String> SignIn([Bind("User")] UserModel response)
+    public async Task<String> SignIn([Bind("User")] UserModelResponse response)
     {
         var answer = await _userService.SignIn(response.name,response.username, response.password);
         return answer;
@@ -41,11 +41,12 @@ public class UserController : ControllerBase
     }
 
     
+    /*
     [HttpDelete("/logout")]// todo придумать нафиг это воообще надо (в этом запросе смысла как-то немного чот тип 0)
     public async Task<Result> Logout([Bind("User")] TokenResponse response)
     {
         return await _userService.Logout(response.token);
-    }
+    }*/
     
     
     [HttpPut("/editepassword")] 

@@ -2,9 +2,9 @@
 {
     public enum PayType
     {
-        onCard = 1,
-        onCheck = 2,
-        onCategory = 3
+        onCard = 0,
+        onCheck = 1,
+        onCategory = 2
             
     }
 }

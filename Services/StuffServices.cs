@@ -483,7 +483,7 @@ namespace Druzhbank.Services
             {
                 var item = new InstrumentHistoryItemModel();
                 item.id = instrument.id;
-                item.type = instrument.instrument_type;
+                item.type = instrument.type;
                 item.count = instrument.count;
                 item.dest = instrument.dest;
                 item.date = instrument.date.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffffffzzz");
