@@ -45,51 +45,100 @@ namespace Druzhbank.Controllers
         }
 
         [HttpPost("/getcards")]
-        public async Task<List<CardModel>> GetCards([Bind("User")] TokenResponse response)
+        public async Task<ResponseModel<List<CardModel>>> GetCards([Bind("User")] TokenResponse response)
         {
-            var answer = await _stuffService.GetCard(response.token);
+            var ans = await _stuffService.GetCard(response.token);
+            var answer = new ResponseModel<List<CardModel>>();
+            answer.success = false;
+            if (ans != null)
+            {
+                answer.data = ans;
+                answer.success = true;
+            }
             return answer;
         }
 
         [HttpPost("/getcheck")]
-        public async Task<List<CheckModel>> GetCheck([Bind("User")] TokenResponse response)
+        public async Task<ResponseModel<List<CheckModel>>> GetCheck([Bind("User")] TokenResponse response)
         {
-            var answer = await _stuffService.GetCheck(response.token);
+            var ans = await _stuffService.GetCheck(response.token);
+            var answer = new ResponseModel<List<CheckModel>>();
+            answer.success = false;
+            if (ans != null)
+            {
+                answer.data = ans;
+                answer.success = true;
+            }
             return answer;
         }
 
         [HttpPost("/getcredits")]
-        public async Task<List<CreditModel>> GetCredit([Bind("User")] TokenResponse response)
+        public async Task<ResponseModel<List<CreditModel>>> GetCredit([Bind("User")] TokenResponse response)
         {
-            var answer = await _stuffService.GetCredit(response.token);
+            var ans = await _stuffService.GetCredit(response.token);
+            var answer = new ResponseModel<List<CreditModel>>();
+            answer.success = false;
+            if (ans != null)
+            {
+                answer.data = ans;
+                answer.success = true;
+            }
             return answer;
         }
         
         [HttpPost("/getallinstruments")]
-        public async Task<List<ShortInstrumentEntity>> GetAllInstruments([Bind("User")] TokenResponse response)
+        public async Task<ResponseModel<List<ShortInstrumentEntity>>> GetAllInstruments([Bind("User")] TokenResponse response)
         {
-            var answer = await _stuffService.GetAllInstruments(response.token);
+            var ans = await _stuffService.GetAllInstruments(response.token);
+            var answer = new ResponseModel<List<ShortInstrumentEntity>>();
+            answer.success = false;
+            if (ans != null)
+            {
+                answer.data = ans;
+                answer.success = true;
+            }
             return answer;
         }
 
         [HttpPost("/history/card")]
-        public async Task<List<InstrumentHistoryItemModel>> GetHistoryCard([Bind("User")] TokenNumberResponse response)
+        public async Task<ResponseModel<List<InstrumentHistoryItemModel>>> GetHistoryCard([Bind("User")] TokenNumberResponse response)
         {
-            var answer = await _stuffService.GetInstrumentHistory(response.token, response.number, Instrument.Card);
+            var ans = await _stuffService.GetInstrumentHistory(response.token, response.number, Instrument.Card);
+            var answer = new ResponseModel<List<InstrumentHistoryItemModel>>();
+            answer.success = false;
+            if (ans != null)
+            {
+                answer.data = ans;
+                answer.success = true;
+            }
             return answer;
         }
 
         [HttpPost("/history/check")]
-        public async Task<List<InstrumentHistoryItemModel>> GetHistoryCheck([Bind("User")] TokenNumberResponse response)
+        public async Task<ResponseModel<List<InstrumentHistoryItemModel>>> GetHistoryCheck([Bind("User")] TokenNumberResponse response)
         {
-            var answer = await _stuffService.GetInstrumentHistory(response.token, response.number, Instrument.Check);
+            var ans = await _stuffService.GetInstrumentHistory(response.token, response.number, Instrument.Check);
+            var answer = new ResponseModel<List<InstrumentHistoryItemModel>>();
+            answer.success = false;
+            if (ans != null)
+            {
+                answer.data = ans;
+                answer.success = true;
+            }
             return answer;
         }
         
         [HttpPost("/history/all")]
-        public async Task<List<InstrumentHistoryItemModel>> GetHistoryAll([Bind("User")] OperationResponce response)
+        public async Task<ResponseModel<List<InstrumentHistoryItemModel>>> GetHistoryAll([Bind("User")] OperationResponce response)
         {
-            var answer = await _stuffService.GetAllInstrumentHistory(response.token, response.operationCount);
+            var ans = await _stuffService.GetAllInstrumentHistory(response.token, response.operationCount);
+            var answer = new ResponseModel<List<InstrumentHistoryItemModel>>();
+            answer.success = false;
+            if (ans != null)
+            {
+                answer.data = ans;
+                answer.success = true;
+            }
             return answer;
         }
 
@@ -125,9 +174,16 @@ namespace Druzhbank.Controllers
         
         
         [HttpPost("/category")]
-        public async Task<List<CategoryEntity>> GetAllCategory()
+        public async Task<ResponseModel<List<CategoryEntity>>> GetAllCategory()
         {
-            var answer = await _stuffService.GetAllCategory();
+            var ans = await _stuffService.GetAllCategory();
+            var answer = new ResponseModel<List<CategoryEntity>>();
+            answer.success = false;
+            if (ans != null)
+            {
+                answer.data = ans;
+                answer.success = true;
+            }
             return answer;
         }
     }
