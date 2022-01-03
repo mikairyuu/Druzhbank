@@ -19,16 +19,30 @@ public class UserController : ControllerBase
     }
     
     [HttpPost("/signin")]
-    public async Task<String> SignIn([Bind("User")] UserModelResponse response)
+    public async Task<ResponseModel<String>> SignIn([Bind("User")] UserModelResponse response)
     {
-        var answer = await _userService.SignIn(response.name,response.username, response.password);
+        var ans = await _userService.SignIn(response.name,response.username, response.password);
+        var answer = new ResponseModel<String>();
+        answer.success = false;
+        if (ans != null)
+        {
+            answer.data = ans;
+            answer.success = true;
+        }
         return answer;
     }
     
     [HttpPost("/login")]
-    public async Task<UserModel> Login([Bind("User")] LoginResponse response)
+    public async Task<ResponseModel<UserModel>> Login([Bind("User")] LoginResponse response)
     {
-        var answer = await _userService.Login(response.username, response.password);
+        var ans = await _userService.Login(response.username, response.password);
+        var answer = new ResponseModel<UserModel>();
+        answer.success = false;
+        if (ans != null)
+        {
+            answer.data = ans;
+            answer.success = true;
+        }
         return answer;
     }
     
@@ -57,9 +71,17 @@ public class UserController : ControllerBase
     
     
     [HttpPut("/editepassword")] 
-    public async Task<String?> EditePassword([Bind("User")] EditPasswordResponse response)
+    public async Task<ResponseModel<String>?> EditePassword([Bind("User")] EditPasswordResponse response)
     {
-        return await _userService.ChangePassword(response.token,response.old_password,response.new_password);
+        var ans =  await _userService.ChangePassword(response.token,response.old_password,response.new_password);
+        var answer = new ResponseModel<String>();
+        answer.success = false;
+        if (ans != null)
+        {
+            answer.data = ans;
+            answer.success = true;
+        }
+        return answer;
     }
     
     
@@ -70,9 +92,16 @@ public class UserController : ControllerBase
     }
     
     [HttpPost("/lastlogins")]
-    public async Task<List<HistoryLoginEntity>> GetUserLoginHistory([Bind("User")] TokenResponse response)
+    public async Task<ResponseModel<List<HistoryLoginEntity>>> GetUserLoginHistory([Bind("User")] TokenResponse response)
     {
-        var answer = await _userService.GetLoginHistory(response.token);
+        var ans = await _userService.GetLoginHistory(response.token);
+        var answer = new ResponseModel<List<HistoryLoginEntity>>();
+        answer.success = false;
+        if (ans != null)
+        {
+            answer.data = ans;
+            answer.success = true;
+        }
         return answer;
     }
 }
