@@ -106,7 +106,7 @@ namespace Druzhbank.Controllers
         public async Task<ResponseModel<List<InstrumentHistoryItemModel>>> GetHistoryCard(
             [Bind("User")] TokenNumberResponse response)
         {
-            var ans = await _stuffService.GetInstrumentHistory(response.token, response.number, Instrument.Card);
+            var ans = await _stuffService.GetInstrumentHistory(response.token, response.number,response.operationCount, Instrument.Card);
             var answer = new ResponseModel<List<InstrumentHistoryItemModel>>();
             answer.success = false;
             if (ans != null)
@@ -122,7 +122,7 @@ namespace Druzhbank.Controllers
         public async Task<ResponseModel<List<InstrumentHistoryItemModel>>> GetHistoryCheck(
             [Bind("User")] TokenNumberResponse response)
         {
-            var ans = await _stuffService.GetInstrumentHistory(response.token, response.number, Instrument.Check);
+            var ans = await _stuffService.GetInstrumentHistory(response.token, response.number,response.operationCount, Instrument.Check);
             var answer = new ResponseModel<List<InstrumentHistoryItemModel>>();
             answer.success = false;
             if (ans != null)

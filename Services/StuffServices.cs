@@ -216,7 +216,7 @@ namespace Druzhbank.Services
 
 
         public async Task<List<InstrumentHistoryItemModel>> GetInstrumentHistory(String? token,
-            String? instrument_number,
+            String? instrument_number,int operationCount,
             Instrument instrument)
         {
             NpgsqlConnection connection = null;
@@ -230,13 +230,15 @@ namespace Druzhbank.Services
                     {
                         case Instrument.Card:
                             ans = await connection.QueryAsync<HistotyItemEntity>
-                            (@"select * from ""OperationHistory"" where user_id = (select id from ""User"" where token = @token) and instrument_id = (select id from ""Cards"" where number = @number) and instrument_type = @type",
-                                new {@token = token, @number = instrument_number, @type = instrument});
+                            (@"(select * from ""OperationHistory"" where user_id = (select id from ""User"" where token = @token) 
+                                   and instrument_id = (select id from ""Cards"" where number = @number) and instrument_type = @type)  order by date desc  limit @count",
+                                new {@token = token, @number = instrument_number, @type = instrument,@count = operationCount});
                             break;
                         case Instrument.Check:
                             ans = await connection.QueryAsync<HistotyItemEntity>
-                            (@"select * from ""OperationHistory"" where user_id = (select id from ""User"" where token = @token) and instrument_id = (select id from ""Check"" where number = @number) and instrument_type = @type",
-                                new {@token = token, @number = instrument_number, @type = instrument});
+                            (@"(select * from ""OperationHistory"" where user_id = (select id from ""User"" where token = @token) 
+                                   and instrument_id = (select id from ""Check"" where number = @number) and instrument_type = @type) order by date desc limit @count",
+                                new {@token = token, @number = instrument_number, @type = instrument,@count = operationCount });
                             break;
                     }
 
