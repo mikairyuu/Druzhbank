@@ -414,7 +414,7 @@ namespace Druzhbank.Services
                                         @token = token,
                                         @instrumentType = Instrument.Card,
                                         @number = source,
-                                        @date = DateTime.Today,
+                                        @date = DateTime.Now,
                                         @sum = "-" + sum.ToString(),
                                         @dest = dest,
                                         @type = PayType.onCard,
@@ -431,7 +431,7 @@ namespace Druzhbank.Services
                                         @token = token,
                                         @instrumentType = Instrument.Check,
                                         @number = source,
-                                        @date = DateTime.Today,
+                                        @date = DateTime.Now,
                                         @sum = "-" + sum.ToString(),
                                         @dest = dest,
                                         @type = PayType.onCard,
@@ -500,7 +500,7 @@ namespace Druzhbank.Services
                                 @source = source,
                                 @instrumentType = byCard ? Instrument.Card : Instrument.Check,
                                 @number = source,
-                                @date = DateTime.Today,
+                                @date = DateTime.Now,
                                 @sum = "-" + sum.ToString(),
                                 @type = PayType.onCategory
                             });
@@ -520,7 +520,7 @@ namespace Druzhbank.Services
                                 @source = source,
                                 @instrumentType = byCard ? Instrument.Card : Instrument.Check,
                                 @number = source,
-                                @date = DateTime.Today,
+                                @date = DateTime.Now,
                                 @sum = "-" + sum.ToString(),
                                 @type = PayType.onCategory
                             });
@@ -578,7 +578,7 @@ namespace Druzhbank.Services
                                         @source = source,
                                         @instrumentType = Instrument.Card,
                                         @number = source,
-                                        @date = DateTime.Today,
+                                        @date = DateTime.Now,
                                         @sum = "-" + sum.ToString()
                                     });
                             else
@@ -594,7 +594,7 @@ namespace Druzhbank.Services
                                         @source = source,
                                         @instrumentType = byCard ? Instrument.Card : Instrument.Check,
                                         @number = source,
-                                        @date = DateTime.Today,
+                                        @date = DateTime.Now,
                                         @sum = "-" + sum.ToString()
                                     });
                             await connection.ExecuteAsync(
@@ -609,7 +609,7 @@ namespace Druzhbank.Services
                                     @user_id = is_check_exist.First().user_id,
                                     @instrumentType = byCard ? Instrument.Card : Instrument.Check,
                                     @card_id = is_check_exist.First().id,
-                                    @date = DateTime.Today,
+                                    @date = DateTime.Now,
                                     @sum = "+" + sum.ToString()
                                 });
                         }
