@@ -13,5 +13,7 @@ namespace Druzhbank.Models
         public String? date { get; set; }
         
         public String? dest { get; set; }
+        
+        public String? source { get; set; }
     }
 }

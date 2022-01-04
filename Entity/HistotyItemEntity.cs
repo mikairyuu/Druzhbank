@@ -10,5 +10,6 @@ namespace Druzhbank.Entity
         public String? count { get; set; }
         public DateTime? date { get; set; }
         public String? dest { get; set; }
+        public String? source { get; set; }
     }
 }

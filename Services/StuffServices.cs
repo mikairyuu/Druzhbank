@@ -332,12 +332,12 @@ namespace Druzhbank.Services
                     {
                         case Instrument.Card:
                             var is_card_exist = await connection.QueryAsync<InstrumentEntity>(
-                                @"select * from ""Cards"" where number = @dest",
+                                @"select * from ""Cards"" where number = @dest and is_blocked = 'false'",
                                 new {@dest = dest});
                             if (is_card_exist.FirstOrDefault() != null)
                             {
                                 var check_cards = await connection.ExecuteAsync
-                                (@"update ""Cards"" set count = count-@sum  where number = @source and user_id = (select id from ""User"" where token = @token) and count > @sum",
+                                (@"update ""Cards"" set count = count-@sum  where number = @source and user_id = (select id from ""User"" where token = @token) and count > @sum and is_blocked = 'false'",
                                     new {@sum = sum, @source = source, token = @token});
                                 if (check_cards > 0)
                                 {
@@ -347,10 +347,10 @@ namespace Druzhbank.Services
                                     if (translationCheck > 0)
                                     {
                                         await connection.ExecuteAsync(
-                                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest) 
+                                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source) 
                                              values (@type,@date,@sum,(select id from ""User"" where token = @token limit 1),
                                             (select id from ""Cards"" where number = @number limit 1),@instrumentType,
-                                               @dest)",
+                                               @dest,@source)",
                                             new
                                             {
                                                 @token = token, 
@@ -359,14 +359,16 @@ namespace Druzhbank.Services
                                                 @date = DateTime.Today, 
                                                 @sum = "-" + sum.ToString(),
                                                 @dest = dest,
-                                                @type = PayType.onCard
+                                                @type = PayType.onCard,
+                                                @source = source
                                             });
                                         await connection.ExecuteAsync(
-                                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest) 
-                                             values (@type,@date,@sum,@user_id,@card_id ,@instrumentType,@dest)",
+                                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source) 
+                                             values (@type,@date,@sum,@user_id,@card_id ,@instrumentType,@dest,@source)",
                                             new
                                             {
                                                 @dest = source,
+                                                @source = dest,
                                                 @type = PayType.onCard,
                                                 @user_id = is_card_exist.First().user_id, 
                                                 @instrumentType = instrument,
@@ -389,7 +391,7 @@ namespace Druzhbank.Services
                             if (is_check_exist.FirstOrDefault() != null)
                             {
                                 var check_check = await connection.ExecuteAsync
-                                (@"update ""Cards"" set count = count-@sum  where number = @source and user_id = (select id from ""User"" where token = @token) and count > @sum",
+                                (@"update ""Cards"" set count = count-@sum  where number = @source and user_id = (select id from ""User"" where token = @token) and count > @sum and is_blocked = 'false'",
                                     new {@sum = sum, @source = source, token = @token});
                                 if (check_check > 0)
                                 {
@@ -399,25 +401,27 @@ namespace Druzhbank.Services
                                     if (translationCheck > 0)
                                     {
                                         await connection.ExecuteAsync(
-                                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest) 
+                                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source ) 
                                              values (@type,@date,@sum,(select id from ""User"" where token = @token limit 1),
-                                            (select id from ""Cards"" where number = @number limit 1),@instrumentType,@dest)",
+                                            (select id from ""Cards"" where number = @number limit 1),@instrumentType,@dest,@source )",
                                             new
                                             {
                                                 @type = PayType.onCheck,
                                                 @token = token,
-                                                @dest =dest,
+                                                @dest = dest,
+                                                @source = source,
                                                 @instrumentType = Instrument.Card, 
                                                 @number = source,
                                                 @date = DateTime.Today, 
                                                 @sum = "-" + sum.ToString()
                                             });
                                         await connection.ExecuteAsync(
-                                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest) 
-                                             values (@type,@date,@sum,@user_id,@card_id ,@instrumentType,@dest)",
+                                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source) 
+                                             values (@type,@date,@sum,@user_id,@card_id ,@instrumentType,@dest,@source)",
                                             new
                                             {
                                                 @dest = source,
+                                                @source = dest,
                                                 @type = PayType.onCheck,
                                                 @token = token,
                                                 @user_id = is_check_exist.First().user_id, 
@@ -461,22 +465,23 @@ namespace Druzhbank.Services
                 {
                     await connection.OpenAsync();
                     var pay_check = await connection.ExecuteAsync
-                    (@"update ""Cards"" set count = count-@sum  where number = @source and user_id = (select id from ""User"" where token = @token) and count > @sum",
+                    (@"update ""Cards"" set count = count-@sum  where number = @source and user_id = (select id from ""User"" where token = @token) and count > @sum and is_blocked = 'false'",
                         new {@sum = sum, @source = source, token = @token});
                     if (pay_check > 0)
                     {
                         await connection.ExecuteAsync(
-                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest) 
+                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source ) 
                                              values (@type,
                                                @date,
                                                @sum,
                                                (select id from ""User"" where token = @token limit 1),
                                                 (select id from ""Cards"" where number = @number limit 1),
                                                @instrumentType,
-                                                @dest)",
+                                                @dest,@source)",
                             new
                             {
                                 @dest = dest_name, @token = token, 
+                                @source = source,
                                 @instrumentType = Instrument.Card, 
                                 @number = source,
                                 @date = DateTime.Today, 
@@ -537,6 +542,7 @@ namespace Druzhbank.Services
                 item.type = instrument.type;
                 item.count = instrument.count;
                 item.dest = instrument.dest;
+                item.source = instrument.source;
                 item.date = instrument.date.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffffffzzz");
                 answer.Add(item);
             }
