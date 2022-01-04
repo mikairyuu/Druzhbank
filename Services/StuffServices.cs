@@ -131,7 +131,7 @@ namespace Druzhbank.Services
                         ),
                     check_ as (
                         select my_check.id,name,number,instrument_type from my_check
-                        join ""OperationHistory"" on instrument_type =2
+                        join ""OperationHistory"" on instrument_type =1
                     group by my_check.id,instrument_type,name,number),
 
                     my_cards as(
@@ -139,7 +139,7 @@ namespace Druzhbank.Services
                         ),
                     cards as(
                         select my_cards.id,name,number,instrument_type from my_cards
-                        join ""OperationHistory"" on instrument_type =1
+                        join ""OperationHistory"" on instrument_type =0
                     group by my_cards.id,instrument_type,name,number)
 
                     select * from check_ union select * from cards",
@@ -231,13 +231,13 @@ namespace Druzhbank.Services
                         case Instrument.Card:
                             ans = await connection.QueryAsync<HistotyItemEntity>
                             (@"(select * from ""OperationHistory"" where user_id = (select id from ""User"" where token = @token) 
-                                   and instrument_id = (select id from ""Cards"" where number = @number) and instrument_type = @type)  order by date desc  limit @count",
+                                   and instrument_id = (select id from ""Cards"" where number = @number) and instrument_type = @type)  order by id desc  limit @count",
                                 new {@token = token, @number = instrument_number, @type = instrument,@count = operationCount});
                             break;
                         case Instrument.Check:
                             ans = await connection.QueryAsync<HistotyItemEntity>
                             (@"(select * from ""OperationHistory"" where user_id = (select id from ""User"" where token = @token) 
-                                   and instrument_id = (select id from ""Check"" where number = @number) and instrument_type = @type) order by date desc limit @count",
+                                   and instrument_id = (select id from ""Check"" where number = @number) and instrument_type = @type) order by id desc limit @count",
                                 new {@token = token, @number = instrument_number, @type = instrument,@count = operationCount });
                             break;
                     }
@@ -268,7 +268,7 @@ namespace Druzhbank.Services
                     await connection.OpenAsync();
                     IEnumerable<HistotyItemEntity> ans = null;
                     ans = await connection.QueryAsync<HistotyItemEntity>
-                    (@"select * from (select * from ""OperationHistory"" order by date desc) as a where user_id = (select id from ""User"" where token = @token) limit @operationCount",
+                    (@"select * from (select * from ""OperationHistory"" order by id desc) as a where user_id = (select id from ""User"" where token = @token) limit @operationCount",
                         new {@token = token, @operationCount = operationCount});
 
                     await connection.CloseAsync();
@@ -450,7 +450,7 @@ namespace Druzhbank.Services
                                     @user_id = is_card_exist.First().user_id,
                                     @instrumentType = byCard ? Instrument.Card : Instrument.Check,
                                     @card_id = is_card_exist.First().id,
-                                    @date = DateTime.Today,
+                                    @date = DateTime.Now,
                                     @sum = "+" + sum.ToString()
                                 });
                         }
@@ -500,7 +500,7 @@ namespace Druzhbank.Services
                             {
                                 @dest = dest_name, @token = token,
                                 @source = source,
-                                @instrumentType = byCard ? Instrument.Card : Instrument.Check,
+                                @instrumentType = Instrument.Card,
                                 @number = source,
                                 @date = DateTime.Now,
                                 @sum = "-" + sum.ToString(),
@@ -520,7 +520,7 @@ namespace Druzhbank.Services
                             {
                                 @dest = dest_name, @token = token,
                                 @source = source,
-                                @instrumentType = byCard ? Instrument.Card : Instrument.Check,
+                                @instrumentType =  Instrument.Check,
                                 @number = source,
                                 @date = DateTime.Now,
                                 @sum = "-" + sum.ToString(),
@@ -594,7 +594,7 @@ namespace Druzhbank.Services
                                         @token = token,
                                         @dest = dest,
                                         @source = source,
-                                        @instrumentType = byCard ? Instrument.Card : Instrument.Check,
+                                        @instrumentType = Instrument.Check,
                                         @number = source,
                                         @date = DateTime.Now,
                                         @sum = "-" + sum.ToString()
@@ -667,6 +667,7 @@ namespace Druzhbank.Services
                 var item = new InstrumentHistoryItemModel();
                 item.id = instrument.id;
                 item.type = instrument.type;
+                item.instrument_type = instrument.instrument_type;
                 item.count = instrument.count;
                 item.dest = instrument.dest;
                 item.source = instrument.source;
