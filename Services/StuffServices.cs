@@ -126,15 +126,7 @@ namespace Druzhbank.Services
                     await connection.OpenAsync();
                     IEnumerable<ShortInstrumentEntity> ans = null;
                     ans = await connection.QueryAsync<ShortInstrumentEntity>(
-                        @"with my_credits as(
-	                   select * from ""Credit"" where user_id = (select id from ""User"" where token = @token)
-                    ),
-                    credits as (
-                        select my_credits.id,name,number,instrument_type from my_credits
-                        join ""OperationHistory"" on instrument_type =3
-                    group by my_credits.id,instrument_type,name,number),
-
-                    my_check as(
+                        @"with my_check as(
                         select * from ""Check"" where user_id = (select id from ""User"" where token = @token)
                         ),
                     check_ as (
@@ -150,7 +142,7 @@ namespace Druzhbank.Services
                         join ""OperationHistory"" on instrument_type =1
                     group by my_cards.id,instrument_type,name,number)
 
-                    select * from credits union select * from check_ union select * from cards",
+                    select * from check_ union select * from cards",
                         new {@token = token});
                     await connection.CloseAsync();
                     return ans.ToList();

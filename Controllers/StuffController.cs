@@ -164,13 +164,13 @@ namespace Druzhbank.Controllers
             switch (refill.payType)
             {
                 case PayType.onCard:
-                    return await _stuffService.PayByCard(refill.token, refill.sourse, refill.dest, refill.sum,
+                    return await _stuffService.PayByCard(refill.token, refill.source, refill.dest, refill.sum,
                         PayType.onCard);
                 case PayType.onCheck:
-                    return await _stuffService.PayByCard(refill.token, refill.sourse, refill.dest, refill.sum,
+                    return await _stuffService.PayByCard(refill.token, refill.source, refill.dest, refill.sum,
                         PayType.onCheck);
                 case PayType.onCategory:
-                    return await _stuffService.PayByCard(refill.token, refill.sourse, refill.dest, refill.sum,
+                    return await _stuffService.PayByCard(refill.token, refill.source, refill.dest, refill.sum,
                         PayType.onCategory);
                 default:
                     return Result.Failure;
@@ -184,20 +184,20 @@ namespace Druzhbank.Controllers
             switch (refill.payType)
             {
                 case PayType.onCard:
-                    return await _stuffService.PayByCheck(refill.token, refill.sourse, refill.dest, refill.sum,
+                    return await _stuffService.PayByCheck(refill.token, refill.source, refill.dest, refill.sum,
                         PayType.onCard);
                 case PayType.onCheck:
-                    return await _stuffService.PayByCheck(refill.token, refill.sourse, refill.dest, refill.sum,
+                    return await _stuffService.PayByCheck(refill.token, refill.source, refill.dest, refill.sum,
                         PayType.onCheck);
                 case PayType.onCategory:
-                  return await _stuffService.PayByCheck(refill.token, refill.sourse, refill.dest, refill.sum,
+                  return await _stuffService.PayByCheck(refill.token, refill.source, refill.dest, refill.sum,
                         PayType.onCategory);
                 default:
                     return Result.Failure;
             } 
         }
 
-        [HttpPost("/pay/category")]
+        /*[HttpPost("/pay/category")]
         public async Task<Result> PayCategory([Bind("User")] TranslationModel refill)
         {
             var answer = refill.sourse.Length > 12
@@ -206,7 +206,7 @@ namespace Druzhbank.Controllers
                 : await _stuffService.PayByCheck(refill.token, refill.sourse, refill.dest, refill.sum,
                     PayType.onCategory);
             return answer;
-        }
+        }*/
 
 
         [HttpPost("/category")]
