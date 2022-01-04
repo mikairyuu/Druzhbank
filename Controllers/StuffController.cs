@@ -153,7 +153,9 @@ namespace Druzhbank.Controllers
         [HttpPost("/refill")]
         public async Task<Result> Refill([Bind("User")] TranslationModel refill)
         {
-            var answer = await _stuffService.Translation(refill.token, refill.sourse,refill.dest,refill.sum,Instrument.Card);
+            var answer = refill.dest.Length > 12?
+                await _stuffService.PayByCard(refill.token, refill.sourse,refill.dest,refill.sum,PayType.onCard)
+                :await _stuffService.PayByCard(refill.token, refill.sourse,refill.dest,refill.sum,PayType.onCheck);
             return answer;
         }
         
@@ -161,14 +163,18 @@ namespace Druzhbank.Controllers
         [HttpPost("/pay")]
         public async Task<Result> Pay([Bind("User")] TranslationModel refill)
         {
-            var answer = await _stuffService.Translation(refill.token, refill.sourse,refill.dest,refill.sum,Instrument.Check);
+            var answer = refill.dest.Length > 12?
+                await _stuffService.PayByCheck(refill.token, refill.sourse,refill.dest,refill.sum,PayType.onCard)
+                :await _stuffService.PayByCheck(refill.token, refill.sourse,refill.dest,refill.sum,PayType.onCheck);
             return answer;
         }
         
         [HttpPost("/pay/category")]
-        public async Task<Result> PayCategory([Bind("User")] TranslationCategoryModel refill)
+        public async Task<Result> PayCategory([Bind("User")] TranslationModel refill)
         {
-            var answer = await _stuffService.PayCategory(refill.token, refill.sourse,refill.dest_name,refill.sum);
+            var answer = refill.sourse.Length > 12?
+                await _stuffService.PayByCard(refill.token, refill.sourse,refill.dest,refill.sum,PayType.onCategory)
+                :await _stuffService.PayByCheck(refill.token, refill.sourse,refill.dest,refill.sum,PayType.onCategory);
             return answer;
         }
         

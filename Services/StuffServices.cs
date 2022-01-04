@@ -166,7 +166,7 @@ namespace Druzhbank.Services
                 connection?.CloseAsync();
             }
         }
-        
+
         public async Task<List<CheckModel>> GetCheck(String? token)
         {
             NpgsqlConnection connection = null;
@@ -319,8 +319,8 @@ namespace Druzhbank.Services
         }
 
 
-        public async Task<Result> Translation(String? token, String? source, String? dest, double? sum,
-            Instrument instrument)
+        public async Task<Result> PayByCard(String? token, String? source, String? dest, double? sum,
+            PayType instrument)
         {
             NpgsqlConnection connection = null;
             try
@@ -330,114 +330,12 @@ namespace Druzhbank.Services
                     await connection.OpenAsync();
                     switch (instrument)
                     {
-                        case Instrument.Card:
-                            var is_card_exist = await connection.QueryAsync<InstrumentEntity>(
-                                @"select * from ""Cards"" where number = @dest and is_blocked = 'false'",
-                                new {@dest = dest});
-                            if (is_card_exist.FirstOrDefault() != null)
-                            {
-                                var check_cards = await connection.ExecuteAsync
-                                (@"update ""Cards"" set count = count-@sum  where number = @source and user_id = (select id from ""User"" where token = @token) and count > @sum and is_blocked = 'false'",
-                                    new {@sum = sum, @source = source, token = @token});
-                                if (check_cards > 0)
-                                {
-                                    var translationCheck = await connection.ExecuteAsync(
-                                        @"update ""Cards"" set count = count+@sum where number = @dest",
-                                        new {@sum = sum, @dest = dest});
-                                    if (translationCheck > 0)
-                                    {
-                                        await connection.ExecuteAsync(
-                                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source) 
-                                             values (@type,@date,@sum,(select id from ""User"" where token = @token limit 1),
-                                            (select id from ""Cards"" where number = @number limit 1),@instrumentType,
-                                               @dest,@source)",
-                                            new
-                                            {
-                                                @token = token, 
-                                                @instrumentType = instrument, 
-                                                @number = source,
-                                                @date = DateTime.Today, 
-                                                @sum = "-" + sum.ToString(),
-                                                @dest = dest,
-                                                @type = PayType.onCard,
-                                                @source = source
-                                            });
-                                        await connection.ExecuteAsync(
-                                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source) 
-                                             values (@type,@date,@sum,@user_id,@card_id ,@instrumentType,@dest,@source)",
-                                            new
-                                            {
-                                                @dest = source,
-                                                @source = dest,
-                                                @type = PayType.onCard,
-                                                @user_id = is_card_exist.First().user_id, 
-                                                @instrumentType = instrument,
-                                                @card_id = is_card_exist.First().id, 
-                                                @date = DateTime.Today, 
-                                                @sum = "+" + sum.ToString()
-                                            });
-                                    }
-
-                                    await connection.CloseAsync();
-                                    return Result.Success;
-                                }
-                            }
-
-                            break;
-                        case Instrument.Check:
-                            var is_check_exist = await connection.QueryAsync<InstrumentEntity>(
-                                @"select * from ""Check"" where number = @dest",
-                                new {@dest = dest});
-                            if (is_check_exist.FirstOrDefault() != null)
-                            {
-                                var check_check = await connection.ExecuteAsync
-                                (@"update ""Cards"" set count = count-@sum  where number = @source and user_id = (select id from ""User"" where token = @token) and count > @sum and is_blocked = 'false'",
-                                    new {@sum = sum, @source = source, token = @token});
-                                if (check_check > 0)
-                                {
-                                    var translationCheck = await connection.ExecuteAsync(
-                                        @"update ""Check"" set count = count+@sum where number = @dest",
-                                        new {@sum = sum, @dest = dest});
-                                    if (translationCheck > 0)
-                                    {
-                                        await connection.ExecuteAsync(
-                                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source ) 
-                                             values (@type,@date,@sum,(select id from ""User"" where token = @token limit 1),
-                                            (select id from ""Cards"" where number = @number limit 1),@instrumentType,@dest,@source )",
-                                            new
-                                            {
-                                                @type = PayType.onCheck,
-                                                @token = token,
-                                                @dest = dest,
-                                                @source = source,
-                                                @instrumentType = Instrument.Card, 
-                                                @number = source,
-                                                @date = DateTime.Today, 
-                                                @sum = "-" + sum.ToString()
-                                            });
-                                        await connection.ExecuteAsync(
-                                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source) 
-                                             values (@type,@date,@sum,@user_id,@card_id ,@instrumentType,@dest,@source)",
-                                            new
-                                            {
-                                                @dest = source,
-                                                @source = dest,
-                                                @type = PayType.onCheck,
-                                                @token = token,
-                                                @user_id = is_check_exist.First().user_id, 
-                                                @instrumentType = instrument,
-                                                @card_id = is_check_exist.First().id,
-                                                @date = DateTime.Today, 
-                                                @sum = "+" + sum.ToString()
-                                            });
-                                    }
-
-                                    await connection.CloseAsync();
-                                    return Result.Success;
-                                }
-                            }
-
-                            break;
+                        case PayType.onCard:
+                            return await PayCard(token, source, dest, sum, true, connection);
+                        case PayType.onCheck:
+                            return await PayCheck(token, source, dest, sum, true, connection);
+                        case PayType.onCategory:
+                            return await PayCategory(token, source, dest, sum, true, connection);
                     }
 
                     await connection.CloseAsync();
@@ -455,8 +353,8 @@ namespace Druzhbank.Services
             }
         }
 
-
-        public async Task<Result> PayCategory(String? token, String? source, String? dest_name, double? sum)
+        public async Task<Result> PayByCheck(String? token, String? source, String? dest, double? sum,
+            PayType instrument)
         {
             NpgsqlConnection connection = null;
             try
@@ -464,36 +362,236 @@ namespace Druzhbank.Services
                 await using (connection = new NpgsqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    var pay_check = await connection.ExecuteAsync
-                    (@"update ""Cards"" set count = count-@sum  where number = @source and user_id = (select id from ""User"" where token = @token) and count > @sum and is_blocked = 'false'",
-                        new {@sum = sum, @source = source, token = @token});
-                    if (pay_check > 0)
+                    switch (instrument)
                     {
-                        await connection.ExecuteAsync(
-                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source ) 
-                                             values (@type,
-                                               @date,
-                                               @sum,
-                                               (select id from ""User"" where token = @token limit 1),
-                                                (select id from ""Cards"" where number = @number limit 1),
-                                               @instrumentType,
-                                                @dest,@source)",
-                            new
-                            {
-                                @dest = dest_name, @token = token, 
-                                @source = source,
-                                @instrumentType = Instrument.Card, 
-                                @number = source,
-                                @date = DateTime.Today, 
-                                @sum = "-" + sum.ToString(),
-                                @type = PayType.onCategory
-                            });
-                        await connection.CloseAsync();
-                        return Result.Success;
+                        case PayType.onCard:
+                            return await PayCard(token, source, dest, sum, false, connection);
+                        case PayType.onCheck:
+                            return await PayCheck(token, source, dest, sum, false, connection);
+                        case PayType.onCategory:
+                            return await PayCategory(token, source, dest, sum, false, connection);
                     }
+
                     await connection.CloseAsync();
                     return Result.Failure;
                 }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return Result.Failure;
+            }
+            finally
+            {
+                connection?.CloseAsync();
+            }
+        }
+
+        public async Task<Result> PayCard(String? token, String? source, String? dest, double? sum,
+            Boolean byCard, NpgsqlConnection connection)
+        {
+            try
+            {
+                var is_card_exist = await connection.QueryAsync<InstrumentEntity>(
+                    @"select * from ""Cards"" where number = @dest and is_blocked = 'false'",
+                    new {@dest = dest});
+                if (is_card_exist.FirstOrDefault() != null)
+                {
+                    var check_cards = byCard
+                        ? await connection.ExecuteAsync
+                        (@"update ""Cards"" set count = count-@sum  where number = @source and user_id = (select id from ""User"" where token = @token) and count > @sum and is_blocked = 'false'",
+                            new {@sum = sum, @source = source, token = @token})
+                        : await connection.ExecuteAsync(
+                            @"update ""Check"" set count = count-@sum  where number = @source and user_id = (select id from ""User"" where token = @token) and count > @sum and is_blocked = 'false'",
+                            new {@sum = sum, @source = source, token = @token});
+                    if (check_cards > 0)
+                    {
+                        var translationCheck = await connection.ExecuteAsync(
+                            @"update ""Cards"" set count = count+@sum where number = @dest",
+                            new {@sum = sum, @dest = dest});
+                        if (translationCheck > 0)
+                        {
+                            await connection.ExecuteAsync(
+                                @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source) 
+                                             values (@type,@date,@sum,(select id from ""User"" where token = @token limit 1),
+                                            (select id from ""Check"" where number = @number limit 1),@instrumentType,
+                                               @dest,@source)",
+                                new
+                                {
+                                    @token = token,
+                                    @instrumentType = byCard ? Instrument.Card : Instrument.Check,
+                                    @number = source,
+                                    @date = DateTime.Today,
+                                    @sum = "-" + sum.ToString(),
+                                    @dest = dest,
+                                    @type = PayType.onCard,
+                                    @source = source
+                                });
+                            await connection.ExecuteAsync(
+                                @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source) 
+                                             values (@type,@date,@sum,@user_id,@card_id ,@instrumentType,@dest,@source)",
+                                new
+                                {
+                                    @dest = source,
+                                    @source = dest,
+                                    @type = PayType.onCard,
+                                    @user_id = is_card_exist.First().user_id,
+                                    @instrumentType = byCard ? Instrument.Card : Instrument.Check,
+                                    @card_id = is_card_exist.First().id,
+                                    @date = DateTime.Today,
+                                    @sum = "+" + sum.ToString()
+                                });
+                        }
+
+                        return Result.Success;
+                    }
+                }
+
+                return Result.Failure;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return Result.Failure;
+            }
+            finally
+            {
+                connection?.CloseAsync();
+            }
+        }
+
+        public async Task<Result> PayCategory(String? token, String? source, String? dest_name, double? sum,
+            Boolean byCard, NpgsqlConnection connection)
+        {
+            try
+            {
+                var pay_check = byCard
+                    ? await connection.ExecuteAsync
+                    (@"update ""Cards"" set count = count-@sum  where number = @source and user_id = (select id from ""User"" where token = @token) and count > @sum and is_blocked = 'false'",
+                        new {@sum = sum, @source = source, token = @token})
+                    : await connection.ExecuteAsync
+                    (@"update ""Check"" set count = count-@sum  where number = @source and user_id = (select id from ""User"" where token = @token) and count > @sum and is_blocked = 'false'",
+                        new {@sum = sum, @source = source, token = @token});
+                if (pay_check > 0)
+                {
+                    if (byCard)
+                        await connection.ExecuteAsync(
+                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source ) 
+                                                 values (@type,
+                                                   @date,
+                                                   @sum,
+                                                   (select id from ""User"" where token = @token limit 1),
+                                                    (select id from ""Cards"" where number = @number limit 1),
+                                                   @instrumentType,
+                                                    @dest,@source)",
+                            new
+                            {
+                                @dest = dest_name, @token = token,
+                                @source = source,
+                                @instrumentType = byCard ? Instrument.Card : Instrument.Check,
+                                @number = source,
+                                @date = DateTime.Today,
+                                @sum = "-" + sum.ToString(),
+                                @type = PayType.onCategory
+                            });
+                    else
+                        await connection.ExecuteAsync(
+                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source ) 
+                                                 values (@type,
+                                                   @date,
+                                                   @sum,
+                                                   (select id from ""User"" where token = @token limit 1),
+                                                    (select id from ""Check"" where number = @number limit 1),
+                                                   @instrumentType,
+                                                    @dest,@source)",
+                            new
+                            {
+                                @dest = dest_name, @token = token,
+                                @source = source,
+                                @instrumentType = byCard ? Instrument.Card : Instrument.Check,
+                                @number = source,
+                                @date = DateTime.Today,
+                                @sum = "-" + sum.ToString(),
+                                @type = PayType.onCategory
+                            });
+
+                    return Result.Success;
+                }
+
+                return Result.Failure;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return Result.Failure;
+            }
+            finally
+            {
+                connection?.CloseAsync();
+            }
+        }
+
+        public async Task<Result> PayCheck(String? token, String? source, String? dest, double? sum,
+            Boolean byCard, NpgsqlConnection connection)
+        {
+            try
+            {
+                var is_check_exist = await connection.QueryAsync<InstrumentEntity>(
+                    @"select * from ""Check"" where number = @dest",
+                    new {@dest = dest});
+                if (is_check_exist.FirstOrDefault() != null)
+                {
+                    var check_check = byCard
+                        ? await connection.ExecuteAsync
+                        (@"update ""Cards"" set count = count-@sum  where number = @source and user_id = (select id from ""User"" where token = @token) and count > @sum and is_blocked = 'false'",
+                            new {@sum = sum, @source = source, token = @token})
+                        : await connection.ExecuteAsync(
+                            @"update ""Check"" set count = count-@sum  where number = @source and user_id = (select id from ""User"" where token = @token) and count > @sum and is_blocked = 'false'",
+                            new {@sum = sum, @source = source, token = @token});
+                    if (check_check > 0)
+                    {
+                        var translationCheck = await connection.ExecuteAsync(
+                            @"update ""Check"" set count = count+@sum where number = @dest",
+                            new {@sum = sum, @dest = dest});
+                        if (translationCheck > 0)
+                        {
+                            await connection.ExecuteAsync(
+                                @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source ) 
+                                             values (@type,@date,@sum,(select id from ""User"" where token = @token limit 1),
+                                            (select id from ""Check"" where number = @number limit 1),@instrumentType,@dest,@source )",
+                                new
+                                {
+                                    @type = PayType.onCheck,
+                                    @token = token,
+                                    @dest = dest,
+                                    @source = source,
+                                    @instrumentType = byCard ? Instrument.Card : Instrument.Check,
+                                    @number = source,
+                                    @date = DateTime.Today,
+                                    @sum = "-" + sum.ToString()
+                                });
+                            await connection.ExecuteAsync(
+                                @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source) 
+                                             values (@type,@date,@sum,@user_id,@card_id ,@instrumentType,@dest,@source)",
+                                new
+                                {
+                                    @dest = source,
+                                    @source = dest,
+                                    @type = PayType.onCheck,
+                                    @token = token,
+                                    @user_id = is_check_exist.First().user_id,
+                                    @instrumentType = byCard ? Instrument.Card : Instrument.Check,
+                                    @card_id = is_check_exist.First().id,
+                                    @date = DateTime.Today,
+                                    @sum = "+" + sum.ToString()
+                                });
+                        }
+
+                        return Result.Success;
+                    }
+                }
+
+                return Result.Failure;
             }
             catch (Exception e)
             {
