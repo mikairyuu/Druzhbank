@@ -1,4 +1,6 @@
-﻿namespace Druzhbank.Models
+﻿using Druzhbank.Enums;
+
+namespace Druzhbank.Models
 {
     public class TranslationModel
     {
@@ -6,5 +8,7 @@
         public string? sourse { get; set; }
         public string? dest { get; set; }
         public double? sum { get; set; }
+        
+        public PayType payType { get; set; }
     }
 }

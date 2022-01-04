@@ -10,26 +10,23 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Druzhbank.Controllers
 {
-    
-    
     [ApiController]
     public class StuffController : ControllerBase
     {
-        
         private StuffService _stuffService;
 
         public StuffController(StuffService stuffService)
         {
             _stuffService = stuffService;
         }
-        
+
         [HttpGet("/bankomats")]
         public async Task<List<BankomatModel>> GetBankomatsInfo()
         {
             var answer = await _stuffService.GetAllBancomats();
             return answer;
         }
-        
+
         /*[HttpGet("/quotes")]// todo разобраться с передаваемой датой
         public async Task<List<String>> GetQuotes([FromQuery(Name = "date")] DateTime date)
         {
@@ -55,6 +52,7 @@ namespace Druzhbank.Controllers
                 answer.data = ans;
                 answer.success = true;
             }
+
             return answer;
         }
 
@@ -69,6 +67,7 @@ namespace Druzhbank.Controllers
                 answer.data = ans;
                 answer.success = true;
             }
+
             return answer;
         }
 
@@ -83,11 +82,13 @@ namespace Druzhbank.Controllers
                 answer.data = ans;
                 answer.success = true;
             }
+
             return answer;
         }
-        
+
         [HttpPost("/getallinstruments")]
-        public async Task<ResponseModel<List<ShortInstrumentEntity>>> GetAllInstruments([Bind("User")] TokenResponse response)
+        public async Task<ResponseModel<List<ShortInstrumentEntity>>> GetAllInstruments(
+            [Bind("User")] TokenResponse response)
         {
             var ans = await _stuffService.GetAllInstruments(response.token);
             var answer = new ResponseModel<List<ShortInstrumentEntity>>();
@@ -97,11 +98,13 @@ namespace Druzhbank.Controllers
                 answer.data = ans;
                 answer.success = true;
             }
+
             return answer;
         }
 
         [HttpPost("/history/card")]
-        public async Task<ResponseModel<List<InstrumentHistoryItemModel>>> GetHistoryCard([Bind("User")] TokenNumberResponse response)
+        public async Task<ResponseModel<List<InstrumentHistoryItemModel>>> GetHistoryCard(
+            [Bind("User")] TokenNumberResponse response)
         {
             var ans = await _stuffService.GetInstrumentHistory(response.token, response.number, Instrument.Card);
             var answer = new ResponseModel<List<InstrumentHistoryItemModel>>();
@@ -111,11 +114,13 @@ namespace Druzhbank.Controllers
                 answer.data = ans;
                 answer.success = true;
             }
+
             return answer;
         }
 
         [HttpPost("/history/check")]
-        public async Task<ResponseModel<List<InstrumentHistoryItemModel>>> GetHistoryCheck([Bind("User")] TokenNumberResponse response)
+        public async Task<ResponseModel<List<InstrumentHistoryItemModel>>> GetHistoryCheck(
+            [Bind("User")] TokenNumberResponse response)
         {
             var ans = await _stuffService.GetInstrumentHistory(response.token, response.number, Instrument.Check);
             var answer = new ResponseModel<List<InstrumentHistoryItemModel>>();
@@ -125,11 +130,13 @@ namespace Druzhbank.Controllers
                 answer.data = ans;
                 answer.success = true;
             }
+
             return answer;
         }
-        
+
         [HttpPost("/history/all")]
-        public async Task<ResponseModel<List<InstrumentHistoryItemModel>>> GetHistoryAll([Bind("User")] OperationResponce response)
+        public async Task<ResponseModel<List<InstrumentHistoryItemModel>>> GetHistoryAll(
+            [Bind("User")] OperationResponce response)
         {
             var ans = await _stuffService.GetAllInstrumentHistory(response.token, response.operationCount);
             var answer = new ResponseModel<List<InstrumentHistoryItemModel>>();
@@ -139,6 +146,7 @@ namespace Druzhbank.Controllers
                 answer.data = ans;
                 answer.success = true;
             }
+
             return answer;
         }
 
@@ -148,37 +156,59 @@ namespace Druzhbank.Controllers
             var answer = await _stuffService.BlockCard(response.token, response.number);
             return answer;
         }
-        
-        
+
+
         [HttpPost("/refill")]
         public async Task<Result> Refill([Bind("User")] TranslationModel refill)
         {
-            var answer = refill.dest.Length > 12?
-                await _stuffService.PayByCard(refill.token, refill.sourse,refill.dest,refill.sum,PayType.onCard)
-                :await _stuffService.PayByCard(refill.token, refill.sourse,refill.dest,refill.sum,PayType.onCheck);
-            return answer;
+            switch (refill.payType)
+            {
+                case PayType.onCard:
+                    return await _stuffService.PayByCard(refill.token, refill.sourse, refill.dest, refill.sum,
+                        PayType.onCard);
+                case PayType.onCheck:
+                    return await _stuffService.PayByCard(refill.token, refill.sourse, refill.dest, refill.sum,
+                        PayType.onCheck);
+                case PayType.onCategory:
+                    return await _stuffService.PayByCard(refill.token, refill.sourse, refill.dest, refill.sum,
+                        PayType.onCategory);
+                default:
+                    return Result.Failure;
+            }
         }
-        
-        
+
+
         [HttpPost("/pay")]
         public async Task<Result> Pay([Bind("User")] TranslationModel refill)
         {
-            var answer = refill.dest.Length > 12?
-                await _stuffService.PayByCheck(refill.token, refill.sourse,refill.dest,refill.sum,PayType.onCard)
-                :await _stuffService.PayByCheck(refill.token, refill.sourse,refill.dest,refill.sum,PayType.onCheck);
-            return answer;
+            switch (refill.payType)
+            {
+                case PayType.onCard:
+                    return await _stuffService.PayByCheck(refill.token, refill.sourse, refill.dest, refill.sum,
+                        PayType.onCard);
+                case PayType.onCheck:
+                    return await _stuffService.PayByCheck(refill.token, refill.sourse, refill.dest, refill.sum,
+                        PayType.onCheck);
+                case PayType.onCategory:
+                  return await _stuffService.PayByCheck(refill.token, refill.sourse, refill.dest, refill.sum,
+                        PayType.onCategory);
+                default:
+                    return Result.Failure;
+            } 
         }
-        
+
         [HttpPost("/pay/category")]
         public async Task<Result> PayCategory([Bind("User")] TranslationModel refill)
         {
-            var answer = refill.sourse.Length > 12?
-                await _stuffService.PayByCard(refill.token, refill.sourse,refill.dest,refill.sum,PayType.onCategory)
-                :await _stuffService.PayByCheck(refill.token, refill.sourse,refill.dest,refill.sum,PayType.onCategory);
+            var answer = refill.sourse.Length > 12
+                ? await _stuffService.PayByCard(refill.token, refill.sourse, refill.dest, refill.sum,
+                    PayType.onCategory)
+                : await _stuffService.PayByCheck(refill.token, refill.sourse, refill.dest, refill.sum,
+                    PayType.onCategory);
             return answer;
         }
-        
-        
+
+
         [HttpPost("/category")]
         public async Task<ResponseModel<List<CategoryEntity>>> GetAllCategory()
         {
@@ -190,6 +220,7 @@ namespace Druzhbank.Controllers
                 answer.data = ans;
                 answer.success = true;
             }
+
             return answer;
         }
     }
