@@ -43,13 +43,13 @@ namespace Druzhbank.Services
                             @token = token.ToString()
                         });
                     await connection.CloseAsync();
-                    return token.ToString();
+                    return ans > 0 ? token.ToString(): null;
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-                return e.Message;
+                return null;
             }
             finally
             {
@@ -157,13 +157,19 @@ namespace Druzhbank.Services
                     var ans = await connection.QueryAsync<UserEntity>(@"select * from ""User"" where token = @token",
                         new {@token = token});
                     var user = ans.FirstOrDefault();
-                    if (GenerateHashFromSalt(old_password, user.salt) != user.hash)
+                    if (user == null)
+                    {
+                        await connection.CloseAsync();
+                        return null; 
+                    }
+                    if (GenerateHashFromSalt(old_password, user.salt) != user.hash || 
+                        GenerateHashFromSalt(new_password, user.salt) == user.hash)
                     {
                         await connection.CloseAsync();
                         return null;
                     }
                     var hash = GenerateHash(new_password);
-                    var new_token = Guid.NewGuid();
+                    var new_token = token;// Guid.NewGuid();
                     await connection.ExecuteScalarAsync(
                         @"Update ""User"" set hash = @password, salt = @salt, token = @new_token where token = @token",
                         new
@@ -186,7 +192,7 @@ namespace Druzhbank.Services
         }
 
 
-        public async Task<Result> ChangeUsername(String? token, String? username)
+        public async Task<Result> ChangeUsername(String? token, String? name)
         {
             NpgsqlConnection connection = null;
             try
@@ -194,11 +200,11 @@ namespace Druzhbank.Services
                 await using (connection = new NpgsqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    await connection.ExecuteAsync(
-                        @"Update ""User"" set username = @username where token = @token",
-                        new {@username = username, @token = token});
+                    var ans = await connection.ExecuteAsync(
+                        @"Update ""User"" set name = @name where token = @token and name != @name ",
+                        new {@name = name, @token = token});
                     await connection.CloseAsync();
-                    return Result.Success;
+                    return ans > 0 ?  Result.Success :  Result.Failure;
                 }
             }
             catch (Exception e)
@@ -263,7 +269,7 @@ namespace Druzhbank.Services
             if (user == null) return null;
             var ans = new UserModel();
             ans.name = user.name;
-            ans.username = user.username;
+            ans.login = user.username;
             ans.token = user.token;
             return ans;
         }

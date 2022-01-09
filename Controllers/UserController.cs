@@ -21,7 +21,7 @@ public class UserController : ControllerBase
     [HttpPost("/signin")]
     public async Task<ResponseModel<String>> SignIn([Bind("User")] UserModelResponse response)
     {
-        var ans = await _userService.SignIn(response.name,response.username, response.password);
+        var ans = await _userService.SignIn(response.name,response.login, response.password);
         var answer = new ResponseModel<String>();
         answer.success = false;
         if (ans != null)
@@ -35,7 +35,7 @@ public class UserController : ControllerBase
     [HttpPost("/login")]
     public async Task<ResponseModel<UserModel>> Login([Bind("User")] LoginResponse response)
     {
-        var ans = await _userService.Login(response.username, response.password);
+        var ans = await _userService.Login(response.login, response.password);
         var answer = new ResponseModel<UserModel>();
         answer.success = false;
         if (ans != null)
@@ -87,8 +87,8 @@ public class UserController : ControllerBase
     
     [HttpPut("/editeusername")]
     public async Task<Result> EditeUsername([Bind("User")] EditUsernameResponse response)
-    {// todo можно выводить сообщение ошибки 
-        return await _userService.ChangeUsername(response.token,response.username);
+    { 
+        return await _userService.ChangeUsername(response.token,response.name);
     }
     
     [HttpPost("/lastlogins")]
