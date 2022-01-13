@@ -28,9 +28,9 @@ namespace Druzhbank.Services
                 await using (connection = new NpgsqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    var ans = await connection.QueryAsync<BankomatModel>(@"select * from ""ATM""");
+                    var ans = await connection.QueryAsync<BankomatEntity>(@"select * from ""ATM""");
                     await connection.CloseAsync();
-                    return ans.ToList();
+                    return BankomatConverter(ans.ToList());
                 }
             }
             catch (Exception e)
@@ -794,5 +794,28 @@ namespace Druzhbank.Services
             doc.LoadXml(utf8Bytes);
             return JsonConvert.SerializeXmlNode(doc);
         }
+
+
+        private List<BankomatModel> BankomatConverter(List<BankomatEntity> list)
+        {
+            var ans = new  List<BankomatModel>();
+            foreach (var item in list)
+            {
+                var bankomat = new BankomatModel();
+                bankomat.id = item.id;
+                bankomat.adress = item.adress;
+                bankomat.coordinates = item.coordinates;
+                bankomat.is_atm = item.is_atm;
+                bankomat.is_working = item.is_working;
+                bankomat.time_start = item.time_start.ToString();
+                bankomat.time_end = item.time_end.ToString();
+                ans.Add(bankomat);
+            }
+
+            return ans;
+        }
+
+
+
     }
 }
