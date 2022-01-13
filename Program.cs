@@ -1,3 +1,4 @@
+using System.Text;
 using Druzhbank.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -34,6 +35,7 @@ app.UseSwaggerUI(options =>
     options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
     options.RoutePrefix = string.Empty;
 });
+Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 app.UseStaticFiles();
 

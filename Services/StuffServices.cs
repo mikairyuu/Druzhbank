@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
+using System.Text;
 using System.Xml;
 using Dapper;
 using Druzhbank.Entity;
 using Druzhbank.Enums;
 using Druzhbank.Models;
-using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Npgsql;
 
@@ -297,7 +292,8 @@ namespace Druzhbank.Services
         }
 
 
-        public async Task<Result> ChangeInstrumentName(String? token, String? name, String? number, Instrument instrument)
+        public async Task<Result> ChangeInstrumentName(String? token, String? name, String? number,
+            Instrument instrument)
         {
             NpgsqlConnection connection = null;
             try
@@ -325,6 +321,7 @@ namespace Druzhbank.Services
                                 new {@token = token, @number = number, @name = name});
                             break;
                     }
+
                     await connection.CloseAsync();
                     if (ans > 0)
                         return Result.Success;
@@ -790,18 +787,12 @@ namespace Druzhbank.Services
 
         private async Task<string> GetValute(string uri)
         {
-            HttpWebRequest request = (HttpWebRequest) WebRequest.Create(uri);
-            request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-
-            using (HttpWebResponse response = (HttpWebResponse) await request.GetResponseAsync())
-            using (Stream stream = response.GetResponseStream())
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                var res =  await reader.ReadToEndAsync();
-                var doc = new XmlDocument();
-                doc.LoadXml(res);
-                return JsonConvert.SerializeXmlNode(doc);
-            }
+            var response = await (await new HttpClient().GetAsync(uri)).Content.ReadAsByteArrayAsync();
+            var utf8 = Encoding.GetEncoding("UTF-8");
+            var utf8Bytes = utf8.GetString(Encoding.Convert(Encoding.GetEncoding("windows-1251"), utf8, response));
+            var doc = new XmlDocument();
+            doc.LoadXml(utf8Bytes);
+            return JsonConvert.SerializeXmlNode(doc);
         }
     }
 }
