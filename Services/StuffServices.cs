@@ -4,11 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using System.Xml;
 using Dapper;
 using Druzhbank.Entity;
 using Druzhbank.Enums;
 using Druzhbank.Models;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using Npgsql;
 
 namespace Druzhbank.Services
@@ -52,7 +54,7 @@ namespace Druzhbank.Services
         {
             try
             {
-                var url = "https://www.cbr-xml-daily.ru/latest.js";
+                var url = "https://www.cbr.ru/scripts/XML_daily.asp";
                 var answer = await GetValute(url);
                 return answer;
             }
@@ -795,7 +797,10 @@ namespace Druzhbank.Services
             using (Stream stream = response.GetResponseStream())
             using (StreamReader reader = new StreamReader(stream))
             {
-                return await reader.ReadToEndAsync();
+                var res =  await reader.ReadToEndAsync();
+                var doc = new XmlDocument();
+                doc.LoadXml(res);
+                return JsonConvert.SerializeXmlNode(doc);
             }
         }
     }
