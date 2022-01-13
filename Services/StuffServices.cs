@@ -199,7 +199,7 @@ namespace Druzhbank.Services
                     await connection.OpenAsync();
                     IEnumerable<InstrumentEntity> ans = null;
                     ans = await connection.QueryAsync<InstrumentEntity>(
-                        @"select * from ""Cards"" where user_id = (select id from ""User"" where token = @token) and is_blocked = 'false'",
+                        @"select * from ""Cards"" where user_id = (select id from ""User"" where token = @token)",
                         new {@token = token});
                     await connection.CloseAsync();
                     return ConvertCard(ans.ToList());
