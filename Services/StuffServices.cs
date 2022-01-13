@@ -216,7 +216,7 @@ namespace Druzhbank.Services
 
 
         public async Task<List<InstrumentHistoryItemModel>> GetInstrumentHistory(String? token,
-            String? instrument_number,int operationCount,
+            String? instrument_number, int operationCount,
             Instrument instrument)
         {
             NpgsqlConnection connection = null;
@@ -232,13 +232,21 @@ namespace Druzhbank.Services
                             ans = await connection.QueryAsync<HistotyItemEntity>
                             (@"(select * from ""OperationHistory"" where user_id = (select id from ""User"" where token = @token) 
                                    and instrument_id = (select id from ""Cards"" where number = @number) and instrument_type = @type)  order by id desc  limit @count",
-                                new {@token = token, @number = instrument_number, @type = instrument,@count = operationCount});
+                                new
+                                {
+                                    @token = token, @number = instrument_number, @type = instrument,
+                                    @count = operationCount
+                                });
                             break;
                         case Instrument.Check:
                             ans = await connection.QueryAsync<HistotyItemEntity>
                             (@"(select * from ""OperationHistory"" where user_id = (select id from ""User"" where token = @token) 
                                    and instrument_id = (select id from ""Check"" where number = @number) and instrument_type = @type) order by id desc limit @count",
-                                new {@token = token, @number = instrument_number, @type = instrument,@count = operationCount });
+                                new
+                                {
+                                    @token = token, @number = instrument_number, @type = instrument,
+                                    @count = operationCount
+                                });
                             break;
                     }
 
@@ -279,6 +287,52 @@ namespace Druzhbank.Services
             {
                 Console.WriteLine(e.Message);
                 return null;
+            }
+            finally
+            {
+                connection?.CloseAsync();
+            }
+        }
+
+
+        public async Task<Result> ChangeInstrumentName(String? token, String? name, String? number, Instrument instrument)
+        {
+            NpgsqlConnection connection = null;
+            try
+            {
+                await using (connection = new NpgsqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+
+                    var ans = -1;
+                    switch (instrument)
+                    {
+                        case Instrument.Card:
+                            ans = await connection.ExecuteAsync
+                            (@"update ""Cards"" set name = @name where number = @number and user_id = (select id from ""User"" where token = @token)",
+                                new {@token = token, @number = number, @name = name});
+                            break;
+                        case Instrument.Check:
+                            ans = await connection.ExecuteAsync
+                            (@"update ""Check"" set name = @name where number = @number and user_id = (select id from ""User"" where token = @token)",
+                                new {@token = token, @number = number, @name = name});
+                            break;
+                        case Instrument.Credit:
+                            ans = await connection.ExecuteAsync
+                            (@"update ""Credit"" set name = @name where number = @number and user_id = (select id from ""User"" where token = @token)",
+                                new {@token = token, @number = number, @name = name});
+                            break;
+                    }
+                    await connection.CloseAsync();
+                    if (ans > 0)
+                        return Result.Success;
+                    return Result.Failure;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return Result.Failure;
             }
             finally
             {
@@ -405,7 +459,7 @@ namespace Druzhbank.Services
                             new {@sum = sum, @dest = dest});
                         if (translationCheck > 0)
                         {
-                            if(byCard)
+                            if (byCard)
                                 await connection.ExecuteAsync(
                                     @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source) 
                                                  values (@type,@date,@sum,(select id from ""User"" where token = @token limit 1),
@@ -422,7 +476,7 @@ namespace Druzhbank.Services
                                         @type = PayType.onCard,
                                         @source = source
                                     });
-                            else 
+                            else
                                 await connection.ExecuteAsync(
                                     @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source) 
                                                  values (@type,@date,@sum,(select id from ""User"" where token = @token limit 1),
@@ -520,7 +574,7 @@ namespace Druzhbank.Services
                             {
                                 @dest = dest_name, @token = token,
                                 @source = source,
-                                @instrumentType =  Instrument.Check,
+                                @instrumentType = Instrument.Check,
                                 @number = source,
                                 @date = DateTime.Now,
                                 @sum = "-" + sum.ToString(),
@@ -567,7 +621,7 @@ namespace Druzhbank.Services
                             new {@sum = sum, @dest = dest});
                         if (translationCheck > 0)
                         {
-                            if(byCard)
+                            if (byCard)
                                 await connection.ExecuteAsync(
                                     @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source ) 
                                                  values (@type,@date,@sum,(select id from ""User"" where token = @token limit 1),

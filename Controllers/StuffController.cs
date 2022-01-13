@@ -197,16 +197,13 @@ namespace Druzhbank.Controllers
             } 
         }
 
-        /*[HttpPost("/pay/category")]
-        public async Task<Result> PayCategory([Bind("User")] TranslationModel refill)
+
+        [HttpPost("/edite/instrument/name")]
+        public async Task<Result> PayCategory([Bind("User")] EditeInstrumentNameResponse response)
         {
-            var answer = refill.sourse.Length > 12
-                ? await _stuffService.PayByCard(refill.token, refill.sourse, refill.dest, refill.sum,
-                    PayType.onCategory)
-                : await _stuffService.PayByCheck(refill.token, refill.sourse, refill.dest, refill.sum,
-                    PayType.onCategory);
+            var answer = await _stuffService.ChangeInstrumentName(response.token, response.name, response.number, response.instrument);
             return answer;
-        }*/
+        }
 
 
         [HttpPost("/category")]
