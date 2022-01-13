@@ -100,7 +100,8 @@ namespace Druzhbank.Controllers
         public async Task<ResponseModel<List<InstrumentHistoryItemModel>>> GetHistoryCard(
             [Bind("User")] TokenNumberResponse response)
         {
-            var ans = await _stuffService.GetInstrumentHistory(response.token, response.number,response.operationCount, Instrument.Card);
+            var ans = await _stuffService.GetInstrumentHistory(response.token, response.number, response.operationCount,
+                Instrument.Card);
             var answer = new ResponseModel<List<InstrumentHistoryItemModel>>();
             answer.success = false;
             if (ans != null)
@@ -116,7 +117,8 @@ namespace Druzhbank.Controllers
         public async Task<ResponseModel<List<InstrumentHistoryItemModel>>> GetHistoryCheck(
             [Bind("User")] TokenNumberResponse response)
         {
-            var ans = await _stuffService.GetInstrumentHistory(response.token, response.number,response.operationCount, Instrument.Check);
+            var ans = await _stuffService.GetInstrumentHistory(response.token, response.number, response.operationCount,
+                Instrument.Check);
             var answer = new ResponseModel<List<InstrumentHistoryItemModel>>();
             answer.success = false;
             if (ans != null)
@@ -147,7 +149,14 @@ namespace Druzhbank.Controllers
         [HttpPost("/block")]
         public async Task<Result> BlockCard([Bind("User")] BlockCardResponse response)
         {
-            var answer = await _stuffService.BlockCard(response.token, response.number);
+            var answer = await _stuffService.BlockCard(response.token, response.number, true);
+            return answer;
+        }
+
+        [HttpPost("/unblock")]
+        public async Task<Result> UnBlockCard([Bind("User")] BlockCardResponse response)
+        {
+            var answer = await _stuffService.BlockCard(response.token, response.number, false);
             return answer;
         }
 
@@ -184,18 +193,19 @@ namespace Druzhbank.Controllers
                     return await _stuffService.PayByCheck(refill.token, refill.source, refill.dest, refill.sum,
                         PayType.onCheck);
                 case PayType.onCategory:
-                  return await _stuffService.PayByCheck(refill.token, refill.source, refill.dest, refill.sum,
+                    return await _stuffService.PayByCheck(refill.token, refill.source, refill.dest, refill.sum,
                         PayType.onCategory);
                 default:
                     return Result.Failure;
-            } 
+            }
         }
 
 
         [HttpPost("/edite/instrument/name")]
         public async Task<Result> PayCategory([Bind("User")] EditeInstrumentNameResponse response)
         {
-            var answer = await _stuffService.ChangeInstrumentName(response.token, response.name, response.number, response.instrument);
+            var answer = await _stuffService.ChangeInstrumentName(response.token, response.name, response.number,
+                response.instrument);
             return answer;
         }
 

@@ -342,7 +342,7 @@ namespace Druzhbank.Services
             }
         }
 
-        public async Task<Result> BlockCard(String? token, String? instrument_number)
+        public async Task<Result> BlockCard(String? token, String? instrument_number, bool block)
         {
             NpgsqlConnection connection = null;
             try
@@ -351,8 +351,8 @@ namespace Druzhbank.Services
                 {
                     await connection.OpenAsync();
                     await connection.ExecuteAsync
-                    (@"update ""Cards"" set is_blocked = true where number = @number and user_id = (select id from ""User"" where token = @token)",
-                        new {@token = token, @number = instrument_number});
+                    (@"update ""Cards"" set is_blocked = @isBlocked where number = @number and user_id = (select id from ""User"" where token = @token)",
+                        new {@token = token, @number = instrument_number, isBlocked = block});
                     await connection.CloseAsync();
                     return Result.Success;
                 }
