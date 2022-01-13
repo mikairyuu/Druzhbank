@@ -1,10 +1,15 @@
-using System.Net;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 using System.Xml;
 using Dapper;
 using Druzhbank.Entity;
 using Druzhbank.Enums;
 using Druzhbank.Models;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Npgsql;
 
@@ -738,7 +743,7 @@ namespace Druzhbank.Services
             {
                 var card = new CardModel();
                 card.id = instrument.id;
-                card.expairy_date = instrument.expairy_date;
+                card.expairy_date = instrument.expairy_date.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffffffzzz");
                 card.hash_cvv = instrument.hash_cvv;
                 card.is_blocked = instrument.is_blocked;
                 card.count = instrument.count;
@@ -774,7 +779,7 @@ namespace Druzhbank.Services
             {
                 var credit = new CreditModel();
                 credit.id = instrument.id;
-                credit.payment_date = instrument.payment_date;
+                credit.payment_date = instrument.payment_date.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffffffzzz");
                 credit.count = instrument.count;
                 credit.name = instrument.name;
                 credit.number = instrument.number;

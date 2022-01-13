@@ -6,6 +6,6 @@ namespace Druzhbank.Models
     {
         public Boolean? is_blocked { get; set; }
         public String? hash_cvv { get; set; }
-        public DateTime? expairy_date { get; set; }
+        public String? expairy_date { get; set; }
     }
 }

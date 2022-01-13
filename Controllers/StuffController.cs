@@ -201,7 +201,7 @@ namespace Druzhbank.Controllers
         }
 
 
-        [HttpPost("/edite/instrument/name")]
+        [HttpPost("/edit/instrument/name")]
         public async Task<Result> PayCategory([Bind("User")] EditeInstrumentNameResponse response)
         {
             var answer = await _stuffService.ChangeInstrumentName(response.token, response.name, response.number,
