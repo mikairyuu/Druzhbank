@@ -43,7 +43,7 @@ namespace Druzhbank.Services
                             @token = token.ToString()
                         });
                     await connection.CloseAsync();
-                    return ans > 0 ? token.ToString(): null;
+                    return ans > 0 ? token.ToString() : null;
                 }
             }
             catch (Exception e)
@@ -58,7 +58,7 @@ namespace Druzhbank.Services
         }
 
 
-        public async Task<UserModel> Login(String? username, String? password)//todo check changes
+        public async Task<UserModel> Login(String? username, String? password) //todo check changes
         {
             NpgsqlConnection connection = null;
             try
@@ -72,11 +72,11 @@ namespace Druzhbank.Services
                     var user = ans.FirstOrDefault();
                     if (user == null || GenerateHashFromSalt(password, user.salt) != user.hash)
                         user = null;
-                    
+
                     if (user != null)
                         await connection.ExecuteAsync(
                             @"insert into ""VisitHistory"" (date_visit,user_id) values (@date,@id)",
-                            new {@date = DateTime.Today, @id = user.id});
+                            new {@date = DateTime.Now, @id = user.id});
                     await connection.CloseAsync();
                     return UserConventer(user);
                 }
@@ -146,7 +146,8 @@ namespace Druzhbank.Services
         }
 
 
-        public async Task<String?> ChangePassword(String? token, String? old_password,String? new_password) // check changes
+        public async Task<String?>
+            ChangePassword(String? token, String? old_password, String? new_password) // check changes
         {
             NpgsqlConnection connection = null;
             try
@@ -160,16 +161,18 @@ namespace Druzhbank.Services
                     if (user == null)
                     {
                         await connection.CloseAsync();
-                        return null; 
+                        return null;
                     }
-                    if (GenerateHashFromSalt(old_password, user.salt) != user.hash || 
+
+                    if (GenerateHashFromSalt(old_password, user.salt) != user.hash ||
                         GenerateHashFromSalt(new_password, user.salt) == user.hash)
                     {
                         await connection.CloseAsync();
                         return null;
                     }
+
                     var hash = GenerateHash(new_password);
-                    var new_token = token;// Guid.NewGuid();
+                    var new_token = token; // Guid.NewGuid();
                     await connection.ExecuteScalarAsync(
                         @"Update ""User"" set hash = @password, salt = @salt, token = @new_token where token = @token",
                         new
@@ -204,7 +207,7 @@ namespace Druzhbank.Services
                         @"Update ""User"" set name = @name where token = @token and name != @name ",
                         new {@name = name, @token = token});
                     await connection.CloseAsync();
-                    return ans > 0 ?  Result.Success :  Result.Failure;
+                    return ans > 0 ? Result.Success : Result.Failure;
                 }
             }
             catch (Exception e)
@@ -219,7 +222,7 @@ namespace Druzhbank.Services
         }
 
 
-        public async Task<List<HistoryLoginEntity>> GetLoginHistory(String? token)
+        public async Task<List<HistoryLoginModel>> GetLoginHistory(String? token)
         {
             NpgsqlConnection connection = null;
             try
@@ -228,11 +231,10 @@ namespace Druzhbank.Services
                 {
                     await connection.OpenAsync();
                     var ans = await connection.QueryAsync<HistoryLoginEntity>(
-                        // todo 
-                        @"select * from ""VisitHistory"" where user_id = (select id from ""User"" where token = @token)",
+                        @"select * from ""VisitHistory"" where user_id = (select id from ""User"" where token = @token) order by id desc ",
                         new {@token = token});
                     await connection.CloseAsync();
-                    return ans.ToList();
+                    return HistoryLoginConverter((ans.ToList()));
                 }
             }
             catch (Exception e)
@@ -272,6 +274,27 @@ namespace Druzhbank.Services
             ans.login = user.username;
             ans.token = user.token;
             return ans;
+        }
+        
+        
+        
+        private  static List<HistoryLoginModel> HistoryLoginConverter (List<HistoryLoginEntity> list)
+        {
+            var answer = new List<HistoryLoginModel>();
+            if (list != null)
+            {
+                foreach (var loginItem in list)
+                {
+                    var item = new HistoryLoginModel();
+                    item.date_visit = loginItem.date_visit.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffffffzzz");
+                    item.id = loginItem.id;
+                    answer.Add(item);
+                }
+
+                return answer;
+            }
+
+            return null;
         }
     }
 }

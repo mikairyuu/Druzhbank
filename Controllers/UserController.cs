@@ -92,12 +92,12 @@ public class UserController : ControllerBase
     }
     
     [HttpPost("/lastlogins")]
-    public async Task<ResponseModel<List<HistoryLoginEntity>>> GetUserLoginHistory([Bind("User")] TokenResponse response)
+    public async Task<ResponseModel<List<HistoryLoginModel>>> GetUserLoginHistory([Bind("User")] TokenResponse response)
     {
         var ans = await _userService.GetLoginHistory(response.token);
-        var answer = new ResponseModel<List<HistoryLoginEntity>>();
+        var answer = new ResponseModel<List<HistoryLoginModel>>();
         answer.success = false;
-        if (ans != null)
+        if (ans.Count > 0)
         {
             answer.data = ans;
             answer.success = true;
