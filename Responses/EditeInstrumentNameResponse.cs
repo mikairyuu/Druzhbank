@@ -7,6 +7,6 @@ namespace Druzhbank.Responses
         public string? name { get; set; }
         public string? token { get; set; }
         public string? number { get; set; }
-         public Instrument instrument { get; set; }
+        public Instrument instrument { get; set; }
     }
 }

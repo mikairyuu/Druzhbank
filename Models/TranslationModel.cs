@@ -8,7 +8,7 @@ namespace Druzhbank.Models
         public string? source { get; set; }
         public string? dest { get; set; }
         public double? sum { get; set; }
-        
+
         public PayType payType { get; set; }
     }
 }

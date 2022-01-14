@@ -2,7 +2,7 @@
 
 namespace Druzhbank.Models
 {
-    public class CardModel:InstrumentModel
+    public class CardModel : InstrumentModel
     {
         public Boolean? is_blocked { get; set; }
         public String? hash_cvv { get; set; }

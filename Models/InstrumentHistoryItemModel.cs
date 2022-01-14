@@ -11,9 +11,9 @@ namespace Druzhbank.Models
         public int? instrument_type { get; set; }
         public String? count { get; set; }
         public String? date { get; set; }
-        
+
         public String? dest { get; set; }
-        
+
         public String? source { get; set; }
     }
 }

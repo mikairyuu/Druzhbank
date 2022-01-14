@@ -4,6 +4,5 @@
     {
         public string? number { get; set; }
         public string? token { get; set; }
-        
     }
 }

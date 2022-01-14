@@ -164,12 +164,12 @@ namespace Druzhbank.Services
                         return null;
                     }
 
-                    if (GenerateHashFromSalt(old_password, user.salt) != user.hash ||
+                    /*if (GenerateHashFromSalt(old_password, user.salt) != user.hash ||
                         GenerateHashFromSalt(new_password, user.salt) == user.hash)
                     {
                         await connection.CloseAsync();
                         return null;
-                    }
+                    }*/
 
                     var hash = GenerateHash(new_password);
                     var new_token = token; // Guid.NewGuid();
@@ -275,10 +275,9 @@ namespace Druzhbank.Services
             ans.token = user.token;
             return ans;
         }
-        
-        
-        
-        private  static List<HistoryLoginModel> HistoryLoginConverter (List<HistoryLoginEntity> list)
+
+
+        private static List<HistoryLoginModel> HistoryLoginConverter(List<HistoryLoginEntity> list)
         {
             var answer = new List<HistoryLoginModel>();
             if (list != null)
@@ -286,7 +285,8 @@ namespace Druzhbank.Services
                 foreach (var loginItem in list)
                 {
                     var item = new HistoryLoginModel();
-                    item.date_visit = loginItem.date_visit.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffffffzzz");
+                    item.date_visit = loginItem.date_visit.Value.ToUniversalTime()
+                        .ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffffffzzz");
                     item.id = loginItem.id;
                     answer.Add(item);
                 }

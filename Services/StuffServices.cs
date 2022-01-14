@@ -506,7 +506,7 @@ namespace Druzhbank.Services
                                     @source = dest,
                                     @type = PayType.onCard,
                                     @user_id = is_card_exist.First().user_id,
-                                    @instrumentType = byCard ? Instrument.Card : Instrument.Check,
+                                    @instrumentType = Instrument.Card,
                                     @card_id = is_card_exist.First().id,
                                     @date = DateTime.Now,
                                     @sum = "+" + sum.ToString()
@@ -667,7 +667,7 @@ namespace Druzhbank.Services
                                     @type = PayType.onCheck,
                                     @token = token,
                                     @user_id = is_check_exist.First().user_id,
-                                    @instrumentType = byCard ? Instrument.Card : Instrument.Check,
+                                    @instrumentType = Instrument.Check,
                                     @card_id = is_check_exist.First().id,
                                     @date = DateTime.Now,
                                     @sum = "+" + sum.ToString()
@@ -743,7 +743,8 @@ namespace Druzhbank.Services
             {
                 var card = new CardModel();
                 card.id = instrument.id;
-                card.expairy_date = instrument.expairy_date.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffffffzzz");
+                card.expairy_date = instrument.expairy_date.Value.ToUniversalTime()
+                    .ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffffffzzz");
                 card.hash_cvv = instrument.hash_cvv;
                 card.is_blocked = instrument.is_blocked;
                 card.count = instrument.count;
@@ -779,7 +780,8 @@ namespace Druzhbank.Services
             {
                 var credit = new CreditModel();
                 credit.id = instrument.id;
-                credit.payment_date = instrument.payment_date.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffffffzzz");
+                credit.payment_date = instrument.payment_date.Value.ToUniversalTime()
+                    .ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffffffzzz");
                 credit.count = instrument.count;
                 credit.name = instrument.name;
                 credit.number = instrument.number;
@@ -803,7 +805,7 @@ namespace Druzhbank.Services
 
         private List<BankomatModel> BankomatConverter(List<BankomatEntity> list)
         {
-            var ans = new  List<BankomatModel>();
+            var ans = new List<BankomatModel>();
             foreach (var item in list)
             {
                 var bankomat = new BankomatModel();
@@ -819,8 +821,5 @@ namespace Druzhbank.Services
 
             return ans;
         }
-
-
-
     }
 }
