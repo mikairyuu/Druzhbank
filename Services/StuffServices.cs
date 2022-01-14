@@ -18,11 +18,13 @@ namespace Druzhbank.Services
     public class StuffService
     {
         private string _connectionString;
+        private CacheProviderService _cacheService;
 
-        public StuffService(IConfiguration configuration)
+        public StuffService(IConfiguration configuration, CacheProviderService cacheService)
         {
             _connectionString = configuration.GetConnectionString("MainDB");
             if (_connectionString == null) throw new Exception("Connection string not specified");
+            _cacheService = cacheService;
         }
 
         public async Task<List<BankomatModel>> GetAllBancomats()
@@ -794,12 +796,18 @@ namespace Druzhbank.Services
 
         private async Task<string> GetValute(string uri)
         {
+            if (_cacheService.lastValuteData != null)
+                if (_cacheService.lastValuteData.Value.Day == DateTime.Now.AddHours(2).Day) //-1h to update at 1 AM MSK
+                    return _cacheService.cachedValute;
             var response = await (await new HttpClient().GetAsync(uri)).Content.ReadAsByteArrayAsync();
             var utf8 = Encoding.GetEncoding("UTF-8");
             var utf8Bytes = utf8.GetString(Encoding.Convert(Encoding.GetEncoding("windows-1251"), utf8, response));
             var doc = new XmlDocument();
             doc.LoadXml(utf8Bytes);
-            return JsonConvert.SerializeXmlNode(doc);
+            var res = JsonConvert.SerializeXmlNode(doc);
+            _cacheService.lastValuteData = DateTime.Now.AddHours(3); //+3h to be at MSK
+            _cacheService.cachedValute = res;
+            return res;
         }
 
 
