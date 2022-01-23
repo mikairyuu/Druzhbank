@@ -1,7 +1,11 @@
-namespace Druzhbank.Services;
+using System;
 
-public class CacheProviderService
-{ 
-    public DateTime? lastValuteData = null; 
-    public string cachedValute = "";
+namespace Druzhbank.Services
+{
+
+    public class CacheProviderService
+    {
+        public DateTime? lastValuteData = null;
+        public string cachedValute = "";
+    }
 }

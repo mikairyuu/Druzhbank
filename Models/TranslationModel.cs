@@ -7,7 +7,7 @@ namespace Druzhbank.Models
         public string? token { get; set; }
         public string? source { get; set; }
         public string? dest { get; set; }
-        public double? sum { get; set; }
+        public decimal? sum { get; set; }
 
         public PayType payType { get; set; }
     }
