@@ -9,6 +9,7 @@ using Dapper;
 using Druzhbank.Entity;
 using Druzhbank.Enums;
 using Druzhbank.Models;
+using Druzhbank.Responses;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Npgsql;
@@ -219,10 +220,12 @@ namespace Druzhbank.Services
         }
 
 
-        public async Task<List<InstrumentHistoryItemModel>> GetInstrumentHistory(String? token,
-            String? instrument_number, int operationCount,
+        public async Task<List<InstrumentHistoryItemModel>> GetInstrumentHistory(TokenNumberResponse response,
             Instrument instrument)
         {
+            var token = response.token;
+            var operationCount = response.operationCount;
+            var instrument_number = response.number;
             NpgsqlConnection connection = null;
             try
             {
@@ -255,7 +258,9 @@ namespace Druzhbank.Services
                     }
 
                     await connection.CloseAsync();
-                    return ConvertInstrumentHistory(ans.ToList());
+                    var answer =  PagedList<HistotyItemEntity>.ToPagedList(ans.ToList(), response.PageNumber,
+                        response.PageSize);
+                      return ConvertInstrumentHistory(answer.ToList());
                 }
             }
             catch (Exception e)
@@ -270,11 +275,13 @@ namespace Druzhbank.Services
         }
 
 
-        public async Task<List<InstrumentHistoryItemModel>> GetAllInstrumentHistory(String? token, int? operationCount)
+        public async Task<List<InstrumentHistoryItemModel>> GetAllInstrumentHistory(OperationResponce responce)
         {
             NpgsqlConnection connection = null;
             try
             {
+                var token = responce.token;
+                var operationCount = responce.operationCount;
                 await using (connection = new NpgsqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
@@ -284,7 +291,9 @@ namespace Druzhbank.Services
                         new {@token = token, @operationCount = operationCount});
 
                     await connection.CloseAsync();
-                    return ConvertInstrumentHistory(ans.ToList());
+                    var answer =
+                        PagedList<HistotyItemEntity>.ToPagedList(ans.ToList(), responce.PageNumber, responce.PageSize);
+                    return ConvertInstrumentHistory(answer.ToList());
                 }
             }
             catch (Exception e)
@@ -698,7 +707,7 @@ namespace Druzhbank.Services
         }
 
 
-        private List<InstrumentHistoryItemModel> ConvertInstrumentHistory(List<HistotyItemEntity> items)
+        private List<InstrumentHistoryItemModel> ConvertInstrumentHistory(List<HistotyItemEntity>? items)
         {
             var answer = new List<InstrumentHistoryItemModel>();
             foreach (var instrument in items)
