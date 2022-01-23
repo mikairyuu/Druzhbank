@@ -4,8 +4,6 @@
     {
         public string? number { get; set; }
         public string? token { get; set; }
-
-        public int operationCount { get; set; }
         
         const int maxPageSize = 50;
         public int PageNumber { get; set; } = 1;

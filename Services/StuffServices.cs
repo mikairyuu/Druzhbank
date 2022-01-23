@@ -220,11 +220,10 @@ namespace Druzhbank.Services
         }
 
 
-        public async Task<List<InstrumentHistoryItemModel>> GetInstrumentHistory(TokenNumberResponse response,
+        public async Task<PaginatedListModel<InstrumentHistoryItemModel>> GetInstrumentHistory(TokenNumberResponse response,
             Instrument instrument)
         {
             var token = response.token;
-            var operationCount = response.operationCount;
             var instrument_number = response.number;
             NpgsqlConnection connection = null;
             try
@@ -238,21 +237,19 @@ namespace Druzhbank.Services
                         case Instrument.Card:
                             ans = await connection.QueryAsync<HistotyItemEntity>
                             (@"(select * from ""OperationHistory"" where user_id = (select id from ""User"" where token = @token) 
-                                   and instrument_id = (select id from ""Cards"" where number = @number) and instrument_type = @type)  order by id desc  limit @count",
+                                   and instrument_id = (select id from ""Cards"" where number = @number) and instrument_type = @type)  order by id desc",
                                 new
                                 {
                                     @token = token, @number = instrument_number, @type = instrument,
-                                    @count = operationCount
                                 });
                             break;
                         case Instrument.Check:
                             ans = await connection.QueryAsync<HistotyItemEntity>
                             (@"(select * from ""OperationHistory"" where user_id = (select id from ""User"" where token = @token) 
-                                   and instrument_id = (select id from ""Check"" where number = @number) and instrument_type = @type) order by id desc limit @count",
+                                   and instrument_id = (select id from ""Check"" where number = @number) and instrument_type = @type) order by id desc",
                                 new
                                 {
                                     @token = token, @number = instrument_number, @type = instrument,
-                                    @count = operationCount
                                 });
                             break;
                     }
@@ -260,7 +257,11 @@ namespace Druzhbank.Services
                     await connection.CloseAsync();
                     var answer =  PagedList<HistotyItemEntity>.ToPagedList(ans.ToList(), response.PageNumber,
                         response.PageSize);
-                      return ConvertInstrumentHistory(answer.ToList());
+                    var pagList = new PaginatedListModel<InstrumentHistoryItemModel>();
+                    pagList.data = ConvertInstrumentHistory(answer.ToList());
+                    pagList.currentPage = answer.CurrentPage;
+                    pagList.isNext = answer.HasNext;
+                      return pagList;
                 }
             }
             catch (Exception e)
@@ -275,25 +276,28 @@ namespace Druzhbank.Services
         }
 
 
-        public async Task<List<InstrumentHistoryItemModel>> GetAllInstrumentHistory(OperationResponce responce)
+        public async Task<PaginatedListModel<InstrumentHistoryItemModel>> GetAllInstrumentHistory(OperationResponce responce)
         {
             NpgsqlConnection connection = null;
             try
             {
                 var token = responce.token;
-                var operationCount = responce.operationCount;
                 await using (connection = new NpgsqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
                     IEnumerable<HistotyItemEntity> ans = null;
                     ans = await connection.QueryAsync<HistotyItemEntity>
-                    (@"select * from (select * from ""OperationHistory"" order by id desc) as a where user_id = (select id from ""User"" where token = @token) limit @operationCount",
-                        new {@token = token, @operationCount = operationCount});
+                    (@"select * from (select * from ""OperationHistory"" order by id desc) as a where user_id = (select id from ""User"" where token = @token)",
+                        new {@token = token});
 
                     await connection.CloseAsync();
                     var answer =
                         PagedList<HistotyItemEntity>.ToPagedList(ans.ToList(), responce.PageNumber, responce.PageSize);
-                    return ConvertInstrumentHistory(answer.ToList());
+                    var pagList = new PaginatedListModel<InstrumentHistoryItemModel>();
+                    pagList.data = ConvertInstrumentHistory(answer.ToList());
+                    pagList.currentPage = answer.CurrentPage;
+                    pagList.isNext = answer.HasNext;
+                    return pagList;
                 }
             }
             catch (Exception e)

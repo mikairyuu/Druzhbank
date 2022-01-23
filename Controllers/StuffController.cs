@@ -97,11 +97,12 @@ namespace Druzhbank.Controllers
         }
 
         [HttpPost("/history/card")]
-        public async Task<ResponseModel<List<InstrumentHistoryItemModel>>> GetHistoryCard(
+        public async Task<ResponseModel<PaginatedListModel<InstrumentHistoryItemModel>>> GetHistoryCard(
             [Bind("User")] TokenNumberResponse response)
         {
             var ans = await _stuffService.GetInstrumentHistory(response,Instrument.Card);
-            var answer = new ResponseModel<List<InstrumentHistoryItemModel>>();
+            var answer = new ResponseModel<PaginatedListModel<InstrumentHistoryItemModel>>();
+            
             answer.success = false;
             if (ans != null)
             {
@@ -113,11 +114,11 @@ namespace Druzhbank.Controllers
         }
 
         [HttpPost("/history/check")]
-        public async Task<ResponseModel<List<InstrumentHistoryItemModel>>> GetHistoryCheck(
+        public async Task<ResponseModel<PaginatedListModel<InstrumentHistoryItemModel>>> GetHistoryCheck(
             [Bind("User")] TokenNumberResponse response)
         {
             var ans = await _stuffService.GetInstrumentHistory(response, Instrument.Check);
-            var answer = new ResponseModel<List<InstrumentHistoryItemModel>>();
+            var answer = new ResponseModel<PaginatedListModel<InstrumentHistoryItemModel>>();
             answer.success = false;
             if (ans != null)
             {
@@ -129,11 +130,11 @@ namespace Druzhbank.Controllers
         }
 
         [HttpPost("/history/all")]
-        public async Task<ResponseModel<List<InstrumentHistoryItemModel>>> GetHistoryAll(
+        public async Task<ResponseModel<PaginatedListModel<InstrumentHistoryItemModel>>> GetHistoryAll(
             [Bind("User")] OperationResponce response)
         {
             var ans = await _stuffService.GetAllInstrumentHistory(response);
-            var answer = new ResponseModel<List<InstrumentHistoryItemModel>>();
+            var answer = new ResponseModel<PaginatedListModel<InstrumentHistoryItemModel>>();
             answer.success = false;
             if (ans != null)
             {
