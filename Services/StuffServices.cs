@@ -94,7 +94,7 @@ namespace Druzhbank.Services
         }
 
 
-        public async Task<List<CreditModel>> GetCredit(String? token)
+        public async Task<List<CreditModel>> GetCredit(String? token, String? number)
         {
             NpgsqlConnection connection = null;
             try
@@ -103,9 +103,13 @@ namespace Druzhbank.Services
                 {
                     await connection.OpenAsync();
                     IEnumerable<InstrumentEntity> ans = null;
-                    ans = await connection.QueryAsync<InstrumentEntity>(
-                        @"select * from ""Credit"" where user_id = (select id from ""User"" where token = @token)",
-                        new {@token = token});
+                    ans = number == null
+                        ? await connection.QueryAsync<InstrumentEntity>(
+                            @"select * from ""Credit"" where user_id = (select id from ""User"" where token = @token)",
+                            new {@token = token})
+                        : await connection.QueryAsync<InstrumentEntity>(
+                            @"select * from ""Credit"" where user_id = (select id from ""User"" where token = @token) and number = @number",
+                            new {@token = token, @number = number});
                     await connection.CloseAsync();
                     return ConvertCredit(ans.ToList());
                 }
@@ -164,7 +168,7 @@ namespace Druzhbank.Services
             }
         }
 
-        public async Task<List<CheckModel>> GetCheck(String? token)
+        public async Task<List<CheckModel>> GetCheck(String? token, String? number)
         {
             NpgsqlConnection connection = null;
             try
@@ -173,9 +177,13 @@ namespace Druzhbank.Services
                 {
                     await connection.OpenAsync();
                     IEnumerable<InstrumentEntity> ans = null;
-                    ans = await connection.QueryAsync<InstrumentEntity>(
-                        @"select * from ""Check"" where user_id = (select id from ""User"" where token = @token)",
-                        new {@token = token});
+                    ans = number == null
+                        ? await connection.QueryAsync<InstrumentEntity>(
+                            @"select * from ""Check"" where user_id = (select id from ""User"" where token = @token)",
+                            new {@token = token})
+                        : await connection.QueryAsync<InstrumentEntity>(
+                            @"select * from ""Check"" where user_id = (select id from ""User"" where token = @token) and number = @number ",
+                            new {@token = token, @number = number});
                     await connection.CloseAsync();
                     return ConvertCheck(ans.ToList());
                 }
@@ -192,7 +200,7 @@ namespace Druzhbank.Services
         }
 
 
-        public async Task<List<CardModel>> GetCard(String? token)
+        public async Task<List<CardModel>> GetCard(String? token, String? number)
         {
             NpgsqlConnection connection = null;
             try
@@ -201,9 +209,13 @@ namespace Druzhbank.Services
                 {
                     await connection.OpenAsync();
                     IEnumerable<InstrumentEntity> ans = null;
-                    ans = await connection.QueryAsync<InstrumentEntity>(
-                        @"select * from ""Cards"" where user_id = (select id from ""User"" where token = @token)",
-                        new {@token = token});
+                    ans = number == null
+                        ? await connection.QueryAsync<InstrumentEntity>(
+                            @"select * from ""Cards"" where user_id = (select id from ""User"" where token = @token)",
+                            new {@token = token})
+                        : await connection.QueryAsync<InstrumentEntity>(
+                            @"select * from ""Cards"" where user_id = (select id from ""User"" where token = @token) and number = @number ",
+                            new {@token = token,@number = number});
                     await connection.CloseAsync();
                     return ConvertCard(ans.ToList());
                 }
@@ -220,7 +232,8 @@ namespace Druzhbank.Services
         }
 
 
-        public async Task<PaginatedListModel<InstrumentHistoryItemModel>> GetInstrumentHistory(TokenNumberResponse response,
+        public async Task<PaginatedListModel<InstrumentHistoryItemModel>> GetInstrumentHistory(
+            TokenNumberResponse response,
             Instrument instrument)
         {
             var token = response.token;
@@ -255,13 +268,13 @@ namespace Druzhbank.Services
                     }
 
                     await connection.CloseAsync();
-                    var answer =  PagedList<HistotyItemEntity>.ToPagedList(ans.ToList(), response.PageNumber,
+                    var answer = PagedList<HistotyItemEntity>.ToPagedList(ans.ToList(), response.PageNumber,
                         response.PageSize);
                     var pagList = new PaginatedListModel<InstrumentHistoryItemModel>();
                     pagList.data = ConvertInstrumentHistory(answer.ToList());
                     pagList.currentPage = answer.CurrentPage;
                     pagList.isNext = answer.HasNext;
-                      return pagList;
+                    return pagList;
                 }
             }
             catch (Exception e)
@@ -276,7 +289,8 @@ namespace Druzhbank.Services
         }
 
 
-        public async Task<PaginatedListModel<InstrumentHistoryItemModel>> GetAllInstrumentHistory(OperationResponce responce)
+        public async Task<PaginatedListModel<InstrumentHistoryItemModel>> GetAllInstrumentHistory(
+            OperationResponce responce)
         {
             NpgsqlConnection connection = null;
             try
