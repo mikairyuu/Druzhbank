@@ -63,14 +63,29 @@ public class UserController : ControllerBase
 
         return answer;
     }
-
-
-    /*
-    [HttpDelete("/logout")]// todo придумать нафиг это воообще надо (в этом запросе смысла как-то немного чот тип 0)
-    public async Task<Result> Logout([Bind("User")] TokenResponse response)
+    
+    
+    [HttpPost("/get/templates")]
+    public async Task<ResponseModel<List<TemplateEntity>>> GetTemplate([Bind("User")] GetTemplateResponse response)
     {
-        return await _userService.Logout(response.token);
-    }*/
+        var ans = await _userService.GetTemplate(response.token,response.number);
+        var answer = new ResponseModel<List<TemplateEntity>>();
+        answer.success = false;
+        if (ans != null)
+        {
+            answer.data = ans;
+            answer.success = true;
+        }
+
+        return answer;
+    }
+    
+    [HttpPost("/set/templates")]
+    public async Task<Result> SetTemplate([Bind("User")] SetTemplateResponse response)
+    {
+        var ans = await _userService.SetTemplate(response.token,response.source,response.dest,response.name,response.sum);
+        return ans;
+    }
 
 
     [HttpPut("/editepassword")]

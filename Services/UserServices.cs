@@ -118,7 +118,7 @@ namespace Druzhbank.Services
             }
         }
 
-        public async Task<Result> Logout(String? token)
+        public async Task<List<TemplateEntity>> GetTemplate(String? token, String? number)
         {
             NpgsqlConnection connection = null;
             try
@@ -126,12 +126,43 @@ namespace Druzhbank.Services
                 await using (connection = new NpgsqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    var new_token = Guid.NewGuid();
-                    var ans = await connection.ExecuteScalarAsync<UserModel>(
-                        @"select * from ""User"" where token = @token",
-                        new {@token = token});
+                    IEnumerable<TemplateEntity> ans = null;
+                    ans = number == null
+                        ? await connection.QueryAsync<TemplateEntity>(
+                            @"select * from ""Templates"" where user_id = (select id from ""User"" where token = @token)",
+                            new {@token = token})
+                        : await connection.QueryAsync<TemplateEntity>(
+                            @"select * from ""Templates"" where user_id = (select id from ""User"" where token = @token) and source = @number",
+                            new {@token = token, @number = number});
                     await connection.CloseAsync();
-                    return ans != null ? Result.Success : Result.Failure;
+                    return ans.ToList();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return null;
+            }
+            finally
+            {
+                connection?.CloseAsync();
+            }
+        }
+
+
+        public async Task<Result> SetTemplate(String? token, String? source, String? dest, String? name, int? sum)
+        {
+            NpgsqlConnection connection = null;
+            try
+            {
+                await using (connection = new NpgsqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    var ans = await connection.ExecuteAsync(
+                        @"insert into ""Templates"" (source ,dest,sum,user_id,name) values (@source ,@dest,@sum,(select id from ""User"" where token = @token ),@name)",
+                        new {@token = token, @source = source, @dest = dest, @sum = sum, @name = name});
+                    await connection.CloseAsync();
+                    return ans > 0 ? Result.Success : Result.Failure;
                 }
             }
             catch (Exception e)
@@ -144,6 +175,9 @@ namespace Druzhbank.Services
                 connection?.CloseAsync();
             }
         }
+
+
+    
 
 
         public async Task<String?>
