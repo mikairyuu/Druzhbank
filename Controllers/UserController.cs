@@ -63,12 +63,12 @@ public class UserController : ControllerBase
 
         return answer;
     }
-    
-    
+
+
     [HttpPost("/get/templates")]
     public async Task<ResponseModel<List<TemplateEntity>>> GetTemplate([Bind("User")] GetTemplateResponse response)
     {
-        var ans = await _userService.GetTemplate(response.token,response.number);
+        var ans = await _userService.GetTemplate(response.token, response.number);
         var answer = new ResponseModel<List<TemplateEntity>>();
         answer.success = false;
         if (ans != null)
@@ -79,18 +79,19 @@ public class UserController : ControllerBase
 
         return answer;
     }
-    
+
     [HttpPost("/set/templates")]
     public async Task<Result> SetTemplate([Bind("User")] SetTemplateResponse response)
     {
-        var ans = await _userService.SetTemplate(response.token,response.source,response.dest,response.name,response.sum);
+        var ans = await _userService.SetTemplate(response.token, response.source, response.dest, response.name,
+            response.sum, response.source_type, response.dest_type);
         return ans;
     }
-    
-    [HttpPost("/delete/templates")]
+
+    [HttpDelete("/delete/templates")]
     public async Task<Result> DeleteTemplate([Bind("User")] DeleteTemplateResponse response)
     {
-        var ans = await _userService.DeleteTemplate(response.token,response.id);
+        var ans = await _userService.DeleteTemplate(response.token, response.id);
         return ans;
     }
 

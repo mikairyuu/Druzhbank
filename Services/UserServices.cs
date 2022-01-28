@@ -150,7 +150,8 @@ namespace Druzhbank.Services
         }
 
 
-        public async Task<Result> SetTemplate(String? token, String? source, String? dest, String? name, int? sum)
+        public async Task<Result> SetTemplate(String? token, String? source, String? dest, String? name, int? sum,
+            int? source_type, int? dest_type)
         {
             NpgsqlConnection connection = null;
             try
@@ -159,8 +160,13 @@ namespace Druzhbank.Services
                 {
                     await connection.OpenAsync();
                     var ans = await connection.ExecuteAsync(
-                        @"insert into ""Templates"" (source ,dest,sum,user_id,name) values (@source ,@dest,@sum,(select id from ""User"" where token = @token ),@name)",
-                        new {@token = token, @source = source, @dest = dest, @sum = sum, @name = name});
+                        @"insert into ""Templates"" (source ,dest,sum,user_id,name,source_type,dest_type) 
+                            values (@source ,@dest,@sum,(select id from ""User"" where token = @token ),@name,@source_type,@dest_type)",
+                        new
+                        {
+                            @token = token, @source = source, @dest = dest, @sum = sum, @name = name,
+                            @source_type = source_type, @dest_type = dest_type
+                        });
                     await connection.CloseAsync();
                     return ans > 0 ? Result.Success : Result.Failure;
                 }
@@ -175,9 +181,8 @@ namespace Druzhbank.Services
                 connection?.CloseAsync();
             }
         }
-        
-        
-        
+
+
         public async Task<Result> DeleteTemplate(String? token, int? template_id)
         {
             NpgsqlConnection connection = null;
@@ -203,11 +208,6 @@ namespace Druzhbank.Services
                 connection?.CloseAsync();
             }
         }
-
-        
-
-
-    
 
 
         public async Task<String?>
