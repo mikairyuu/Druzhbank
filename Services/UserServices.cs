@@ -175,6 +175,36 @@ namespace Druzhbank.Services
                 connection?.CloseAsync();
             }
         }
+        
+        
+        
+        public async Task<Result> DeleteTemplate(String? token, int? template_id)
+        {
+            NpgsqlConnection connection = null;
+            try
+            {
+                await using (connection = new NpgsqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    var ans = await connection.ExecuteAsync(
+                        @"Delete from ""Templates"" where user_id = (select id from ""User"" where token = @token ) and id = @id ",
+                        new {@token = token, @id = template_id});
+                    await connection.CloseAsync();
+                    return ans > 0 ? Result.Success : Result.Failure;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return Result.Failure;
+            }
+            finally
+            {
+                connection?.CloseAsync();
+            }
+        }
+
+        
 
 
     

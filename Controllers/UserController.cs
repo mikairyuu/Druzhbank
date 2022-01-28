@@ -86,6 +86,13 @@ public class UserController : ControllerBase
         var ans = await _userService.SetTemplate(response.token,response.source,response.dest,response.name,response.sum);
         return ans;
     }
+    
+    [HttpPost("/delete/templates")]
+    public async Task<Result> DeleteTemplate([Bind("User")] DeleteTemplateResponse response)
+    {
+        var ans = await _userService.DeleteTemplate(response.token,response.id);
+        return ans;
+    }
 
 
     [HttpPut("/editepassword")]
