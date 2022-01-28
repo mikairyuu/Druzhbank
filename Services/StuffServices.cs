@@ -274,6 +274,7 @@ namespace Druzhbank.Services
                     pagList.data = ConvertInstrumentHistory(answer.ToList());
                     pagList.currentPage = answer.CurrentPage;
                     pagList.isNext = answer.HasNext;
+                    pagList.countPage = answer.TotalPages;
                     return pagList;
                 }
             }
@@ -311,6 +312,7 @@ namespace Druzhbank.Services
                     pagList.data = ConvertInstrumentHistory(answer.ToList());
                     pagList.currentPage = answer.CurrentPage;
                     pagList.isNext = answer.HasNext;
+                    pagList.countPage = answer.TotalPages;
                     return pagList;
                 }
             }
