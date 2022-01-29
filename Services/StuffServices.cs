@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -215,7 +216,7 @@ namespace Druzhbank.Services
                             new {@token = token})
                         : await connection.QueryAsync<InstrumentEntity>(
                             @"select * from ""Cards"" where user_id = (select id from ""User"" where token = @token) and number = @number ",
-                            new {@token = token,@number = number});
+                            new {@token = token, @number = number});
                     await connection.CloseAsync();
                     return ConvertCard(ans.ToList());
                 }
@@ -484,7 +485,7 @@ namespace Druzhbank.Services
                     var is_card_exist = await connection.QueryAsync<InstrumentEntity>(
                         @"select * from ""Cards"" where number = @dest and is_blocked = 'false'",
                         new {@dest = dest});
-
+                    var new_sum = SumConverter(sum);
                     if (byCard)
                         await connection.ExecuteAsync(
                             @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source) 
@@ -497,7 +498,7 @@ namespace Druzhbank.Services
                                 @instrumentType = Instrument.Card,
                                 @number = source,
                                 @date = DateTime.Now,
-                                @sum = "-" + sum.ToString(),
+                                @sum = "-" + new_sum,
                                 @dest = dest,
                                 @type = PayType.onCard,
                                 @source = source
@@ -514,7 +515,7 @@ namespace Druzhbank.Services
                                 @instrumentType = Instrument.Check,
                                 @number = source,
                                 @date = DateTime.Now,
-                                @sum = "-" + sum.ToString(),
+                                @sum = "-" + new_sum,
                                 @dest = dest,
                                 @type = PayType.onCard,
                                 @source = source
@@ -531,7 +532,7 @@ namespace Druzhbank.Services
                             @instrumentType = Instrument.Card,
                             @card_id = is_card_exist.First().id,
                             @date = DateTime.Now,
-                            @sum = "+" + sum.ToString()
+                            @sum = "+" + new_sum
                         });
 
 
@@ -565,6 +566,7 @@ namespace Druzhbank.Services
                         new {@sum = sum, @source = source, token = @token});
                 if (pay_check > 0)
                 {
+                    var new_sum = SumConverter(sum);
                     if (byCard)
                         await connection.ExecuteAsync(
                             @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source ) 
@@ -582,7 +584,7 @@ namespace Druzhbank.Services
                                 @instrumentType = Instrument.Card,
                                 @number = source,
                                 @date = DateTime.Now,
-                                @sum = "-" + sum.ToString(),
+                                @sum = "-" + new_sum,
                                 @type = PayType.onCategory
                             });
                     else
@@ -602,7 +604,7 @@ namespace Druzhbank.Services
                                 @instrumentType = Instrument.Check,
                                 @number = source,
                                 @date = DateTime.Now,
-                                @sum = "-" + sum.ToString(),
+                                @sum = "-" + new_sum,
                                 @type = PayType.onCategory
                             });
 
@@ -636,6 +638,7 @@ namespace Druzhbank.Services
                     var is_check_exist = await connection.QueryAsync<InstrumentEntity>(
                         @"select * from ""Check"" where number = @dest",
                         new {@dest = dest});
+                    var new_sum = SumConverter(sum);
                     if (byCard)
                         await connection.ExecuteAsync(
                             @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source ) 
@@ -650,7 +653,7 @@ namespace Druzhbank.Services
                                 @instrumentType = Instrument.Card,
                                 @number = source,
                                 @date = DateTime.Now,
-                                @sum = "-" + sum.ToString()
+                                @sum = "-" + new_sum
                             });
                     else
                         await connection.ExecuteAsync(
@@ -666,7 +669,7 @@ namespace Druzhbank.Services
                                 @instrumentType = Instrument.Check,
                                 @number = source,
                                 @date = DateTime.Now,
-                                @sum = "-" + sum.ToString()
+                                @sum = "-" + new_sum
                             });
                     await connection.ExecuteAsync(
                         @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source) 
@@ -681,7 +684,7 @@ namespace Druzhbank.Services
                             @instrumentType = Instrument.Check,
                             @card_id = is_check_exist.First().id,
                             @date = DateTime.Now,
-                            @sum = "+" + sum.ToString()
+                            @sum = "+" + new_sum
                         });
 
 
@@ -836,6 +839,25 @@ namespace Druzhbank.Services
             }
 
             return ans;
+        }
+
+        private String? SumConverter(decimal? sum)
+        {
+            if (sum != null)
+            {
+                var new_sum = Math.Floor((decimal) sum);
+                var diff = sum - new_sum;
+                if (diff > 0)
+                {
+                    if (diff.ToString().Length == 3)
+                        return sum.ToString() + "0";
+                    return sum.ToString();
+                }
+
+                return sum.ToString() + ".00";
+            }
+
+            return sum.ToString();
         }
     }
 }
