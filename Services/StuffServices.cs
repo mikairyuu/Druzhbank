@@ -854,7 +854,7 @@ namespace Druzhbank.Services
                     return sum.ToString();
                 }
 
-                return sum.ToString() + ".00";
+                return new_sum.ToString() + ".00";
             }
 
             return sum.ToString();
