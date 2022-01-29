@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Druzhbank.Entity;
@@ -65,7 +65,7 @@ public class UserController : ControllerBase
     }
 
 
-    [HttpPost("/get/templates")]
+    [HttpPost("/templates/get")]
     public async Task<ResponseModel<List<TemplateEntity>>> GetTemplate([Bind("User")] GetTemplateResponse response)
     {
         var ans = await _userService.GetTemplate(response.token, response.number);
@@ -80,7 +80,7 @@ public class UserController : ControllerBase
         return answer;
     }
 
-    [HttpPost("/set/templates")]
+    [HttpPost("/templates/set")]
     public async Task<Result> SetTemplate([Bind("User")] SetTemplateResponse response)
     {
         var ans = await _userService.SetTemplate(response.token, response.source, response.dest, response.name,
@@ -88,7 +88,7 @@ public class UserController : ControllerBase
         return ans;
     }
 
-    [HttpDelete("/delete/templates")]
+    [HttpDelete("/templates/delete")]
     public async Task<Result> DeleteTemplate([Bind("User")] DeleteTemplateResponse response)
     {
         var ans = await _userService.DeleteTemplate(response.token, response.id);
