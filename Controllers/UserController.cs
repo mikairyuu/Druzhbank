@@ -68,7 +68,7 @@ public class UserController : ControllerBase
     [HttpPost("/templates/get")]
     public async Task<ResponseModel<List<TemplateEntity>>> GetTemplate([Bind("User")] GetTemplateResponse response)
     {
-        var ans = await _userService.GetTemplate(response.token, response.number);
+        var ans = await _userService.GetTemplate(response.token, response.id);
         var answer = new ResponseModel<List<TemplateEntity>>();
         answer.success = false;
         if (ans != null)

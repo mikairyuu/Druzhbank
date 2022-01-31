@@ -118,7 +118,7 @@ namespace Druzhbank.Services
             }
         }
 
-        public async Task<List<TemplateEntity>> GetTemplate(String? token, String? number)
+        public async Task<List<TemplateEntity>> GetTemplate(String? token, int? id)
         {
             NpgsqlConnection connection = null;
             try
@@ -127,13 +127,13 @@ namespace Druzhbank.Services
                 {
                     await connection.OpenAsync();
                     IEnumerable<TemplateEntity> ans = null;
-                    ans = number == null
+                    ans = id == null
                         ? await connection.QueryAsync<TemplateEntity>(
                             @"select * from ""Templates"" where user_id = (select id from ""User"" where token = @token)",
                             new {@token = token})
                         : await connection.QueryAsync<TemplateEntity>(
-                            @"select * from ""Templates"" where user_id = (select id from ""User"" where token = @token) and source = @number",
-                            new {@token = token, @number = number});
+                            @"select * from ""Templates"" where user_id = (select id from ""User"" where token = @token) and id = @number",
+                            new {@token = token, @number = id});
                     await connection.CloseAsync();
                     return ans.ToList();
                 }
