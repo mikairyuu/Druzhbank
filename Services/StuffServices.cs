@@ -535,6 +535,7 @@ namespace Druzhbank.Services
                             @sum = "+" + new_sum
                         });
 
+                    //Notificate(token, is_card_exist.First().user_id, connection, sum);
 
                     return Result.Success;
                 }
@@ -608,6 +609,7 @@ namespace Druzhbank.Services
                                 @type = PayType.onCategory
                             });
 
+                    //Notificate(token, -1, connection, sum);
                     return Result.Success;
                 }
 
@@ -687,7 +689,7 @@ namespace Druzhbank.Services
                             @sum = "+" + new_sum
                         });
 
-
+                    //Notificate(token, is_check_exist.First().user_id, connection, sum);
                     return Result.Success;
                 }
 
@@ -858,6 +860,34 @@ namespace Druzhbank.Services
             }
 
             return sum.ToString();
+        }
+
+
+        private async Task Notificate(String token, int? user_id, NpgsqlConnection connection,decimal? sum)
+        {
+            try
+            {
+                var tokens = await connection.QueryAsync<NotificationUserEntity>(
+                    @"select * from ""NotificationTokens"" where user_id = @user_id or user_id = (select id from ""User"" where token = @token)",
+                    new {@user_id = user_id, @token = token});
+                var GetterTokens = new List<String>();
+                var TranslationTokens = new List<String>();
+                foreach (var item in tokens)
+                {
+                    if(item.user_id == user_id)
+                        GetterTokens.Add(item.token);
+                    else
+                        TranslationTokens.Add(item.token);
+                }
+
+                await NotificationServices.ToNotificate(GetterTokens,"Пополнение",sum.ToString());
+                await NotificationServices.ToNotificate(TranslationTokens,"Перевод",sum.ToString());
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
     }
 }

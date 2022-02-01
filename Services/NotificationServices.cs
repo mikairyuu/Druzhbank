@@ -15,7 +15,7 @@ public class NotificationServices
         });
     }
 
-    private static async void ToNotificate(List<String> tokens,String type,String sum)
+    public static async Task ToNotificate(List<String> tokens,String type,String sum)
     {
         var ans = type+ " на сумму "+ sum;
         var message = new MulticastMessage()
