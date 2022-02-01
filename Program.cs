@@ -13,6 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<UserService>();
 builder.Services.AddSingleton<StuffService>();
+builder.Services.AddSingleton<NotificationServices>();
 builder.Services.AddSingleton<CacheProviderService>();
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 builder.Services.AddSwaggerGen();
