@@ -8,6 +8,6 @@
         public int? source_type { get; set; }
         public int? dest_type { get; set; }
         public string? name { get; set; }
-        public int? sum { get; set; }
+        public Double? sum { get; set; }
     }
 }

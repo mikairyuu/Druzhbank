@@ -150,7 +150,7 @@ namespace Druzhbank.Services
         }
 
 
-        public async Task<Result> SetTemplate(String? token, String? source, String? dest, String? name, int? sum,
+        public async Task<Result> SetTemplate(String? token, String? source, String? dest, String? name, Double? sum,
             int? source_type, int? dest_type)
         {
             NpgsqlConnection connection = null;
