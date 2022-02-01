@@ -292,19 +292,35 @@ namespace Druzhbank.Services
 
 
         public async Task<PaginatedListModel<InstrumentHistoryItemModel>> GetAllInstrumentHistory(
-            OperationResponce responce)
+            OperationsResponseAllInstruments responce)
         {
             NpgsqlConnection connection = null;
             try
             {
                 var token = responce.token;
+                var sum = responce.FindBySum;
+                var dest = responce.FindByDest;
+                var date = responce.FindByDate;
                 await using (connection = new NpgsqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    IEnumerable<HistotyItemEntity> ans = null;
-                    ans = await connection.QueryAsync<HistotyItemEntity>
-                    (@"select * from (select * from ""OperationHistory"" order by id desc) as a where user_id = (select id from ""User"" where token = @token)",
-                        new {@token = token});
+                    IEnumerable<HistotyItemEntity> ans_ = null;
+                    ans_ = sum != null || dest != null
+                        ? await connection.QueryAsync<HistotyItemEntity>
+                        (@"select * from (select * from ""OperationHistory"" order by id desc) as a where user_id = (select id from ""User"" where token = @token) and (dest = @dest or count = @count)",
+                            new {@token = token, @count = sum, @dest = dest})
+                        : await connection.QueryAsync<HistotyItemEntity>
+                        (@"select * from (select * from ""OperationHistory"" order by id desc) as a where user_id = (select id from ""User"" where token = @token)",
+                            new {@token = token});
+                    var ans = new List<HistotyItemEntity>();
+                    if (date != null)
+                        foreach (var item in ans_)
+                        {
+                            if (item.date == date)
+                                ans.Add(item);
+                        }
+                    else
+                        ans = ans_.ToList();
 
                     await connection.CloseAsync();
                     var answer =
@@ -863,7 +879,7 @@ namespace Druzhbank.Services
         }
 
 
-        private async Task Notificate(String token, int? user_id, NpgsqlConnection connection,decimal? sum)
+        private async Task Notificate(String token, int? user_id, NpgsqlConnection connection, decimal? sum)
         {
             try
             {
@@ -874,14 +890,14 @@ namespace Druzhbank.Services
                 var TranslationTokens = new List<String>();
                 foreach (var item in tokens)
                 {
-                    if(item.user_id == user_id)
+                    if (item.user_id == user_id)
                         GetterTokens.Add(item.token);
                     else
                         TranslationTokens.Add(item.token);
                 }
 
-                await NotificationServices.ToNotificate(GetterTokens,"Пополнение",sum.ToString());
-                await NotificationServices.ToNotificate(TranslationTokens,"Перевод",sum.ToString());
+                await NotificationServices.ToNotificate(GetterTokens, "Пополнение", sum.ToString());
+                await NotificationServices.ToNotificate(TranslationTokens, "Перевод", sum.ToString());
             }
             catch (Exception e)
             {

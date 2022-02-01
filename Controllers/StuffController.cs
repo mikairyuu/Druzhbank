@@ -131,7 +131,7 @@ namespace Druzhbank.Controllers
 
         [HttpPost("/history/all")]
         public async Task<ResponseModel<PaginatedListModel<InstrumentHistoryItemModel>>> GetHistoryAll(
-            [Bind("User")] OperationResponce response)
+            [Bind("User")] OperationsResponseAllInstruments response)
         {
             var ans = await _stuffService.GetAllInstrumentHistory(response);
             var answer = new ResponseModel<PaginatedListModel<InstrumentHistoryItemModel>>();
