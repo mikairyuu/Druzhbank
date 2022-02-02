@@ -20,6 +20,6 @@
             }
         }
         
-        public string? FindByItem { get; set; }
+        public string? FindByString { get; set; }
     }
 }

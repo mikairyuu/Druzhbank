@@ -298,7 +298,7 @@ namespace Druzhbank.Services
             try
             {
                 var token = responce.token;
-                var findByItem = responce.FindByItem;
+                var findByItem = responce.FindByString;
                 await using (connection = new NpgsqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
@@ -310,7 +310,7 @@ namespace Druzhbank.Services
                     if (findByItem != null)
                         foreach (var item in ans_)
                         {
-                            if (item.count.Contains(findByItem)||item.dest.Contains(findByItem)||item.date.ToString().Contains(findByItem))
+                            if (item.count.Contains(findByItem)||item.dest.Contains(findByItem)||item.date_string.Contains(findByItem))
                                 ans.Add(item);
                         }
                     else
@@ -498,10 +498,10 @@ namespace Druzhbank.Services
                     var new_sum = SumConverter(sum);
                     if (byCard)
                         await connection.ExecuteAsync(
-                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source) 
+                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source,date_string) 
                                                  values (@type,@date,@sum,(select id from ""User"" where token = @token limit 1),
                                                 (select id from ""Cards"" where number = @number limit 1),@instrumentType,
-                                                   @dest,@source)",
+                                                   @dest,@source,@date_string)",
                             new
                             {
                                 @token = token,
@@ -511,14 +511,15 @@ namespace Druzhbank.Services
                                 @sum = "-" + new_sum,
                                 @dest = dest,
                                 @type = PayType.onCard,
-                                @source = source
+                                @source = source,
+                                @date_string = DateTime.Today.ToString().Remove(10)
                             });
                     else
                         await connection.ExecuteAsync(
-                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source) 
+                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source,date_string) 
                                                  values (@type,@date,@sum,(select id from ""User"" where token = @token limit 1),
                                                 (select id from ""Check"" where number = @number limit 1),@instrumentType,
-                                                   @dest,@source)",
+                                                   @dest,@source,@date_string)",
                             new
                             {
                                 @token = token,
@@ -528,11 +529,12 @@ namespace Druzhbank.Services
                                 @sum = "-" + new_sum,
                                 @dest = dest,
                                 @type = PayType.onCard,
-                                @source = source
+                                @source = source,
+                                @date_string = DateTime.Today.ToString().Remove(10)
                             });
                     await connection.ExecuteAsync(
-                        @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source) 
-                                             values (@type,@date,@sum,@user_id,@card_id ,@instrumentType,@dest,@source)",
+                        @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source,date_string) 
+                                             values (@type,@date,@sum,@user_id,@card_id ,@instrumentType,@dest,@source,@date_string)",
                         new
                         {
                             @dest = source,
@@ -542,7 +544,8 @@ namespace Druzhbank.Services
                             @instrumentType = Instrument.Card,
                             @card_id = is_card_exist.First().id,
                             @date = DateTime.Now,
-                            @sum = "+" + new_sum
+                            @sum = "+" + new_sum,
+                            @date_string = DateTime.Today.ToString().Remove(10)
                         });
 
                     //Notificate(token, is_card_exist.First().user_id, connection, sum);
@@ -580,14 +583,14 @@ namespace Druzhbank.Services
                     var new_sum = SumConverter(sum);
                     if (byCard)
                         await connection.ExecuteAsync(
-                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source ) 
+                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source,date_string ) 
                                                  values (@type,
                                                    @date,
                                                    @sum,
                                                    (select id from ""User"" where token = @token limit 1),
                                                     (select id from ""Cards"" where number = @number limit 1),
                                                    @instrumentType,
-                                                    @dest,@source)",
+                                                    @dest,@source,@date_string)",
                             new
                             {
                                 @dest = dest_name, @token = token,
@@ -596,18 +599,19 @@ namespace Druzhbank.Services
                                 @number = source,
                                 @date = DateTime.Now,
                                 @sum = "-" + new_sum,
-                                @type = PayType.onCategory
+                                @type = PayType.onCategory,
+                                @date_string = DateTime.Today.ToString().Remove(10)
                             });
                     else
                         await connection.ExecuteAsync(
-                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source ) 
+                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source,date_string ) 
                                                  values (@type,
                                                    @date,
                                                    @sum,
                                                    (select id from ""User"" where token = @token limit 1),
                                                     (select id from ""Check"" where number = @number limit 1),
                                                    @instrumentType,
-                                                    @dest,@source)",
+                                                    @dest,@source,@date_string)",
                             new
                             {
                                 @dest = dest_name, @token = token,
@@ -616,7 +620,8 @@ namespace Druzhbank.Services
                                 @number = source,
                                 @date = DateTime.Now,
                                 @sum = "-" + new_sum,
-                                @type = PayType.onCategory
+                                @type = PayType.onCategory,
+                                @date_string = DateTime.Today.ToString().Remove(10)
                             });
 
                     //Notificate(token, -1, connection, sum);
@@ -653,9 +658,9 @@ namespace Druzhbank.Services
                     var new_sum = SumConverter(sum);
                     if (byCard)
                         await connection.ExecuteAsync(
-                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source ) 
+                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source,date_string ) 
                                                  values (@type,@date,@sum,(select id from ""User"" where token = @token limit 1),
-                                                (select id from ""Cards"" where number = @number limit 1),@instrumentType,@dest,@source )",
+                                                (select id from ""Cards"" where number = @number limit 1),@instrumentType,@dest,@source,@date_string )",
                             new
                             {
                                 @type = PayType.onCheck,
@@ -665,13 +670,14 @@ namespace Druzhbank.Services
                                 @instrumentType = Instrument.Card,
                                 @number = source,
                                 @date = DateTime.Now,
-                                @sum = "-" + new_sum
+                                @sum = "-" + new_sum,
+                                @date_string = DateTime.Today.ToString().Remove(10) 
                             });
                     else
                         await connection.ExecuteAsync(
-                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source ) 
+                            @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source,date_string ) 
                                                  values (@type,@date,@sum,(select id from ""User"" where token = @token limit 1),
-                                                (select id from ""Check"" where number = @number limit 1),@instrumentType,@dest,@source )",
+                                                (select id from ""Check"" where number = @number limit 1),@instrumentType,@dest,@source,@date_string )",
                             new
                             {
                                 @type = PayType.onCheck,
@@ -681,11 +687,12 @@ namespace Druzhbank.Services
                                 @instrumentType = Instrument.Check,
                                 @number = source,
                                 @date = DateTime.Now,
-                                @sum = "-" + new_sum
+                                @sum = "-" + new_sum,
+                                @date_string = DateTime.Today.ToString().Remove(10)
                             });
                     await connection.ExecuteAsync(
-                        @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source) 
-                                             values (@type,@date,@sum,@user_id,@card_id ,@instrumentType,@dest,@source)",
+                        @"insert into ""OperationHistory"" (type,date,count,user_id,instrument_id,instrument_type,dest,source,date_string) 
+                                             values (@type,@date,@sum,@user_id,@card_id ,@instrumentType,@dest,@source,@date_string)",
                         new
                         {
                             @dest = source,
@@ -696,7 +703,8 @@ namespace Druzhbank.Services
                             @instrumentType = Instrument.Check,
                             @card_id = is_check_exist.First().id,
                             @date = DateTime.Now,
-                            @sum = "+" + new_sum
+                            @sum = "+" + new_sum,
+                            @date_string = DateTime.Today.ToString().Remove(10)
                         });
 
                     //Notificate(token, is_check_exist.First().user_id, connection, sum);
