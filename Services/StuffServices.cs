@@ -21,12 +21,14 @@ namespace Druzhbank.Services
     {
         private string _connectionString;
         private CacheProviderService _cacheService;
+        private NotificationServices _notificationServise;
 
-        public StuffService(IConfiguration configuration, CacheProviderService cacheService)
+        public StuffService(IConfiguration configuration, CacheProviderService cacheService,NotificationServices notificationServis)
         {
             _connectionString = configuration.GetConnectionString("MainDB");
             if (_connectionString == null) throw new Exception("Connection string not specified");
             _cacheService = cacheService;
+            _notificationServise = notificationServis;
         }
 
         public async Task<List<BankomatModel>> GetAllBancomats()
@@ -548,7 +550,7 @@ namespace Druzhbank.Services
                             @date_string = DateTime.Today.ToString().Remove(10)
                         });
 
-                    //Notificate(token, is_card_exist.First().user_id, connection, sum);
+                    await Notificate(token, is_card_exist.First().user_id, connection, sum);
 
                     return Result.Success;
                 }
@@ -624,7 +626,8 @@ namespace Druzhbank.Services
                                 @date_string = DateTime.Today.ToString().Remove(10)
                             });
 
-                    //Notificate(token, -1, connection, sum);
+                    
+                    await Notificate(token, -1, connection, sum);
                     return Result.Success;
                 }
 
@@ -707,7 +710,7 @@ namespace Druzhbank.Services
                             @date_string = DateTime.Today.ToString().Remove(10)
                         });
 
-                    //Notificate(token, is_check_exist.First().user_id, connection, sum);
+                    await Notificate(token, is_check_exist.First().user_id, connection, sum);
                     return Result.Success;
                 }
 
@@ -897,11 +900,10 @@ namespace Druzhbank.Services
                     else
                         TranslationTokens.Add(item.token);
                 }
-
                 if (GetterTokens.Count > 0)
-                    await NotificationServices.ToNotificate(GetterTokens, "Пополнение", sum.ToString());
+                    await _notificationServise.ToNotificate(GetterTokens, "Пополнение", sum.ToString());
                 if (TranslationTokens.Count > 0)
-                    await NotificationServices.ToNotificate(TranslationTokens, "Перевод", sum.ToString());
+                    await _notificationServise.ToNotificate(TranslationTokens, "Перевод", sum.ToString());
             }
             catch (Exception e)
             {

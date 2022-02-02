@@ -8,25 +8,43 @@ public class NotificationServices
 {
     public NotificationServices()
     {
-        FirebaseApp.Create(new AppOptions()
+        try
         {
-            Credential = GoogleCredential.GetApplicationDefault()
-        });
+            FirebaseApp.Create(new AppOptions()
+            {
+                Credential = GoogleCredential.GetApplicationDefault()
+            });
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+        
     }
 
-    public static async Task ToNotificate(List<String> tokens, String type, String sum)
+    public  async Task ToNotificate(List<String> tokens, String type, String sum)
     {
-        var ans = type + " на сумму " + sum;
-        var message = new MulticastMessage()
+        try
         {
-            Tokens = tokens,
-            Notification = new Notification()
+            var ans = type + " на сумму " + sum;
+            var message = new MulticastMessage()
             {
-                Title = "Druzhbank Translation",
-                Body = ans,
-            }
-        };
+                Tokens = tokens,
+                Notification = new Notification()
+                {
+                    Title = "Druzhbank Translation",
+                    Body = ans,
+                }
+            };
 
-        var response = await FirebaseMessaging.DefaultInstance.SendMulticastAsync(message);
+            var response = await FirebaseMessaging.DefaultInstance.SendMulticastAsync(message);
+        }
+
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 }
