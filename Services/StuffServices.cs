@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection.Emit;
@@ -21,14 +22,12 @@ namespace Druzhbank.Services
     {
         private string _connectionString;
         private CacheProviderService _cacheService;
-        private NotificationServices _notificationServise;
 
-        public StuffService(IConfiguration configuration, CacheProviderService cacheService,NotificationServices notificationServis)
+        public StuffService(IConfiguration configuration, CacheProviderService cacheService)
         {
             _connectionString = configuration.GetConnectionString("MainDB");
             if (_connectionString == null) throw new Exception("Connection string not specified");
             _cacheService = cacheService;
-            _notificationServise = notificationServis;
         }
 
         public async Task<List<BankomatModel>> GetAllBancomats()
@@ -550,7 +549,7 @@ namespace Druzhbank.Services
                             @date_string = DateTime.Today.ToString().Remove(10)
                         });
 
-                    await Notificate(token, is_card_exist.First().user_id, connection, sum);
+                    await Notify(token, is_card_exist.First().user_id, connection, sum);
 
                     return Result.Success;
                 }
@@ -627,7 +626,7 @@ namespace Druzhbank.Services
                             });
 
                     
-                    await Notificate(token, -1, connection, sum);
+                    await Notify(token, -1, connection, sum);
                     return Result.Success;
                 }
 
@@ -710,7 +709,7 @@ namespace Druzhbank.Services
                             @date_string = DateTime.Today.ToString().Remove(10)
                         });
 
-                    await Notificate(token, is_check_exist.First().user_id, connection, sum);
+                    await Notify(token, is_check_exist.First().user_id, connection, sum);
                     return Result.Success;
                 }
 
@@ -884,7 +883,7 @@ namespace Druzhbank.Services
         }
 
 
-        private async Task Notificate(String token, int? user_id, NpgsqlConnection connection, decimal? sum)
+        private async Task Notify(string token, int? user_id, IDbConnection connection, decimal? sum)
         {
             try
             {
@@ -901,9 +900,9 @@ namespace Druzhbank.Services
                         TranslationTokens.Add(item.token);
                 }
                 if (GetterTokens.Count > 0)
-                    await _notificationServise.ToNotificate(GetterTokens, "Пополнение", sum.ToString());
+                    await NotificationServices.Notify(GetterTokens, "Пополнение", sum.ToString());
                 if (TranslationTokens.Count > 0)
-                    await _notificationServise.ToNotificate(TranslationTokens, "Перевод", sum.ToString());
+                    await NotificationServices.Notify(TranslationTokens, "Списание", sum.ToString());
             }
             catch (Exception e)
             {

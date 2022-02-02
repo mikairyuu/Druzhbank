@@ -1,5 +1,7 @@
 using System.Text;
 using Druzhbank.Services;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
@@ -38,6 +40,11 @@ app.UseSwaggerUI(options =>
     options.RoutePrefix = string.Empty;
 });
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+FirebaseApp.Create(new AppOptions()
+{
+    Credential = GoogleCredential.GetApplicationDefault()
+});
 
 app.UseStaticFiles();
 
