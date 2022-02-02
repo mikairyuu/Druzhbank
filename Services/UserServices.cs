@@ -58,6 +58,36 @@ namespace Druzhbank.Services
         }
 
 
+        public async Task<Result> AddDevice(String? token, String? deviceToken)
+        {
+            NpgsqlConnection connection = null;
+            try
+            {
+                await using (connection = new NpgsqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    var ans = await connection.ExecuteAsync(
+                        @"insert into ""NotificationTokens"" (user_id,token)  values ((select id from ""User"" where token = @token),@deviceToken)",
+                        new
+                        {
+                            @deviceToken = deviceToken, @token = token
+                        });
+                    await connection.CloseAsync();
+                    return Result.Success;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return Result.Failure;
+            }
+            finally
+            {
+                connection?.CloseAsync();
+            }
+        }
+
+
         public async Task<UserModel> Login(String? username, String? password) //todo check changes
         {
             NpgsqlConnection connection = null;

@@ -38,7 +38,7 @@ namespace Druzhbank.Controllers
         [HttpPost("/getcards")]
         public async Task<ResponseModel<List<CardModel>>> GetCards([Bind("User")] GetInstrumentResponse response)
         {
-            var ans = await _stuffService.GetCard(response.token,response.number);
+            var ans = await _stuffService.GetCard(response.token, response.number);
             var answer = new ResponseModel<List<CardModel>>();
             answer.success = false;
             if (ans != null)
@@ -53,7 +53,7 @@ namespace Druzhbank.Controllers
         [HttpPost("/getcheck")]
         public async Task<ResponseModel<List<CheckModel>>> GetCheck([Bind("User")] GetInstrumentResponse response)
         {
-            var ans = await _stuffService.GetCheck(response.token,response.number);
+            var ans = await _stuffService.GetCheck(response.token, response.number);
             var answer = new ResponseModel<List<CheckModel>>();
             answer.success = false;
             if (ans != null)
@@ -68,7 +68,7 @@ namespace Druzhbank.Controllers
         [HttpPost("/getcredits")]
         public async Task<ResponseModel<List<CreditModel>>> GetCredit([Bind("User")] GetInstrumentResponse response)
         {
-            var ans = await _stuffService.GetCredit(response.token,response.number);
+            var ans = await _stuffService.GetCredit(response.token, response.number);
             var answer = new ResponseModel<List<CreditModel>>();
             answer.success = false;
             if (ans != null)
@@ -100,9 +100,9 @@ namespace Druzhbank.Controllers
         public async Task<ResponseModel<PaginatedListModel<InstrumentHistoryItemModel>>> GetHistoryCard(
             [Bind("User")] TokenNumberResponse response)
         {
-            var ans = await _stuffService.GetInstrumentHistory(response,Instrument.Card);
+            var ans = await _stuffService.GetInstrumentHistory(response, Instrument.Card);
             var answer = new ResponseModel<PaginatedListModel<InstrumentHistoryItemModel>>();
-            
+
             answer.success = false;
             if (ans != null)
             {

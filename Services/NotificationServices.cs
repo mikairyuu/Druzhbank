@@ -8,16 +8,15 @@ public class NotificationServices
 {
     public NotificationServices()
     {
-        var file = "";
         FirebaseApp.Create(new AppOptions()
         {
-            Credential = GoogleCredential.FromFile(file)
+            Credential = GoogleCredential.GetApplicationDefault()
         });
     }
 
-    public static async Task ToNotificate(List<String> tokens,String type,String sum)
+    public static async Task ToNotificate(List<String> tokens, String type, String sum)
     {
-        var ans = type+ " на сумму "+ sum;
+        var ans = type + " на сумму " + sum;
         var message = new MulticastMessage()
         {
             Tokens = tokens,

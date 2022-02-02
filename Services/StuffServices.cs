@@ -298,25 +298,19 @@ namespace Druzhbank.Services
             try
             {
                 var token = responce.token;
-                var sum = responce.FindBySum;
-                var dest = responce.FindByDest;
-                var date = responce.FindByDate;
+                var findByItem = responce.FindByItem;
                 await using (connection = new NpgsqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
                     IEnumerable<HistotyItemEntity> ans_ = null;
-                    ans_ = sum != null || dest != null
-                        ? await connection.QueryAsync<HistotyItemEntity>
-                        (@"select * from (select * from ""OperationHistory"" order by id desc) as a where user_id = (select id from ""User"" where token = @token) and (dest = @dest or count = @count)",
-                            new {@token = token, @count = sum, @dest = dest})
-                        : await connection.QueryAsync<HistotyItemEntity>
+                    ans_ =  await connection.QueryAsync<HistotyItemEntity>
                         (@"select * from (select * from ""OperationHistory"" order by id desc) as a where user_id = (select id from ""User"" where token = @token)",
                             new {@token = token});
                     var ans = new List<HistotyItemEntity>();
-                    if (date != null)
+                    if (findByItem != null)
                         foreach (var item in ans_)
                         {
-                            if (item.date == date)
+                            if (item.count.Contains(findByItem)||item.dest.Contains(findByItem)||item.date.ToString().Contains(findByItem))
                                 ans.Add(item);
                         }
                     else
@@ -896,8 +890,10 @@ namespace Druzhbank.Services
                         TranslationTokens.Add(item.token);
                 }
 
-                await NotificationServices.ToNotificate(GetterTokens, "Пополнение", sum.ToString());
-                await NotificationServices.ToNotificate(TranslationTokens, "Перевод", sum.ToString());
+                if (GetterTokens.Count > 0)
+                    await NotificationServices.ToNotificate(GetterTokens, "Пополнение", sum.ToString());
+                if (TranslationTokens.Count > 0)
+                    await NotificationServices.ToNotificate(TranslationTokens, "Перевод", sum.ToString());
             }
             catch (Exception e)
             {

@@ -20,8 +20,6 @@
             }
         }
         
-        public string? FindByDest { get; set; }
-        public Double? FindBySum  { get; set; }
-        public DateTime? FindByDate  { get; set; }
+        public string? FindByItem { get; set; }
     }
 }

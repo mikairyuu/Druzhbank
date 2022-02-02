@@ -32,6 +32,12 @@ public class UserController : ControllerBase
 
         return answer;
     }
+    [HttpPost("/device/add")]
+    public async Task<Result> AddDevice([Bind("User")] AddTokenDeviceResponse response)
+    {
+        var ans = await _userService.AddDevice(response.token, response.deviceToken);
+        return ans;
+    }
 
     [HttpPost("/login")]
     public async Task<ResponseModel<UserModel>> Login([Bind("User")] LoginResponse response)
