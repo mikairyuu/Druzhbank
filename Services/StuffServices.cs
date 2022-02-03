@@ -20,6 +20,7 @@ namespace Druzhbank.Services
 {
     public class StuffService
     {
+        private static List<string> translationType = new List<string>(){"перевод на карту","перевод на счет","оплата услуг"};
         private string _connectionString;
         private CacheProviderService _cacheService;
 
@@ -311,7 +312,7 @@ namespace Druzhbank.Services
                     if (findByItem != null)
                         foreach (var item in ans_)
                         {
-                            if (item.count.Contains(findByItem)||item.dest.Contains(findByItem)||item.date_string.Contains(findByItem))
+                            if (item.count.Contains(findByItem)/*||item.dest.Contains(findByItem)*/||item.date_string.Contains(findByItem)|| translationType[item.type].Contains(findByItem.ToLower()))
                                 ans.Add(item);
                         }
                     else
