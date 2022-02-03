@@ -94,7 +94,7 @@ public class UserController : ControllerBase
         return ans;
     }
 
-    [HttpDelete("/templates/delete")]
+    [HttpPost("/templates/delete")]
     public async Task<Result> DeleteTemplate([Bind("User")] DeleteTemplateResponse response)
     {
         var ans = await _userService.DeleteTemplate(response.token, response.id);
